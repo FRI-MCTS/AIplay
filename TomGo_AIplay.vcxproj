@@ -89,6 +89,7 @@
     <ClCompile Include="Source\Game_Engine.cpp" />
     <ClCompile Include="Source\Game_ConnectFour.cpp" />
     <ClCompile Include="Source\Game_Gomoku.cpp" />
+    <ClCompile Include="Source\Game_Hex.cpp" />
     <ClCompile Include="Source\Game_Interface.cpp" />
     <ClCompile Include="Source\Player_AI_UCT_AMAF.cpp" />
     <ClCompile Include="Source\Player_AI_UCT_RAVE.cpp" />
@@ -112,6 +113,7 @@
     <ClInclude Include="Source\Game_EEG.hpp" />
     <ClInclude Include="Source\Game_Engine.hpp" />
     <ClInclude Include="Source\Game_Gomoku.hpp" />
+    <ClInclude Include="Source\Game_Hex.hpp" />
     <ClInclude Include="Source\Game_Interface.hpp" />
     <ClInclude Include="Source\Game_TicTacToe.hpp" />
     <ClInclude Include="Source\Support_GetCPUTime.hpp" />

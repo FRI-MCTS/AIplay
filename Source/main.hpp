@@ -9,6 +9,7 @@
 
 //include other
 
+#include "Game_Hex.hpp"
 #include "Game_ConnectFour.hpp"
 #include "Game_Gomoku.hpp"
 #include "Game_TicTacToe.hpp"

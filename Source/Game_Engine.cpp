@@ -421,6 +421,10 @@ void Game_Engine::Output_Board_State()
 	printf("\n");
 	for(int i = 0, k = 0; i < board_height; i++, k += board_length){
 		printf("\n%2d ",i+1);
+		//-----ADD-----corrected output for hex
+		for(int temp = 0; temp < i; temp++)
+			printf(" ");
+		//-----END-----
 		for(int j = 0; j < board_length; j++){
 			if(k+j != history_moves[current_plys])
 				printf(" %c", output_board_lookup_char[board_state[k+j]+1]);

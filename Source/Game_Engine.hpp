@@ -128,6 +128,11 @@ public:
 	double param_score_win;
 	double param_score_lose;
 	double param_score_draw;
+	//-----ADD-----for hex
+	int big_board_length;
+	int big_board_height;
+	int big_board_size;
+	//-----END-----
 
 	//public variables - visualization
 	char output_board_last_move_char;
@@ -144,6 +149,9 @@ public:
 	double* score;
 	int current_player;
 	bool game_ended;
+	//-----ADD-----for hex
+	char*	big_board_state;
+	//-----END-----
 
 	//public variables - game history
 	int current_plys;

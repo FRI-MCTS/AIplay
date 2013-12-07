@@ -2,6 +2,7 @@
 #include "main.hpp"
 
 //prototypes
+void Hex_Testing();
 void Main_Testing();
 void ConnectFour_Testing();
 void Gomoku_Testing();
@@ -65,12 +66,18 @@ void Main_Testing()
 	//Param_Impact_Testing_v06();
 	//LRP_test_wrapperMultiPar();
 	//LRP_test_wrapperMultiPar();
-	LRP_improved_v1();
+
+
+	//LRP_improved_v1();
+
 
 	//LRP_test_wrapperMultiPar();
 
 	//TicTacToe_Implementation_Test1();
 	//Go_Testing();
+
+	
+	Hex_Testing();
 
 }
 
@@ -93,7 +100,7 @@ void LRP_improved_v1(double* score_avg, double* score_avg_last10, double** last_
 	const double	start_Cp_self		= 0.2;		//initial Cp: evaluated player
 	const double	fixed_CP_opponent	= 0.0;		//initial Cp: opponent
 	const double	funcApp_init_weights = 0.0;	//initial function approximator weights (to be optimized by LRP)
-	const int		num_LRP_iterations	= 500;		//number of LRP iterations
+	const int		num_LRP_iterations	= 10;		//number of LRP iterations
 	const double	dw_start			= 0.200;	//LRP delta weight (change in Cp value): at start
 	const double	dw_limit			= 0.0005;	//LRP delta weight (change in Cp value): at end
 	const double	lrp_ab_max			= 0.75;		//LRP learning parameter alpha: maximum value
@@ -2468,6 +2475,41 @@ int main(int argc, char* argv[])
 #endif
 
 }
+
+void Hex_Testing()
+{
+	Game_Engine* hex = new Game_Hex();
+	Player_Human* playerHuman = new Player_Human(hex);
+	Player_AI_UCT* playerUCT1 = new Player_AI_UCT(hex);
+	Player_AI_UCT* playerUCT2 = new Player_AI_UCT(hex);
+	//Player_Engine* players[] = {playerHuman,playerUCT1};
+	Player_Engine* players[] = {playerUCT1,playerUCT2};
+	hex->players = players;
+
+	//players settings
+	playerUCT1->UCT_param_IterNum = 5000;
+	playerUCT1->UCT_param_C = 1.0 / (2*sqrt(2));
+	playerUCT2->UCT_param_IterNum = 5000;
+	playerUCT2->UCT_param_C = 0.7 / (2*sqrt(2));
+
+	//testing
+	unsigned int tmpr = (unsigned int)time(NULL);
+	srand(tmpr);
+	//srand(1362238250);
+	double cpu_time = getCPUTime();
+	//gomoku->Simulate_Output_Game();
+	hex->Game_Reset();
+	playerUCT1->Reset();
+	playerUCT2->Reset();
+	hex->Game_Reset();
+	hex->Simulate_Output_Game();
+	//gomoku->Simulate_Human_Game();
+	cpu_time = getCPUTime()-cpu_time;
+	printf("Runtime: %9.3f s\n",cpu_time);
+	printf("%d\n",tmpr);
+
+}
+
 
 //
 //void Go_Testing()
