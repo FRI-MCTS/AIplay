@@ -1,0 +1,11 @@
+DiffSim
+testInput_3.txt
+
+Score: 0.759268
+
+UCT
+ num Sim: 10
+ ply Lim: 1
+ par C:  0.354
+
+Runtime:     0.514 s
