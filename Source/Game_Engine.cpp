@@ -29,6 +29,9 @@ void Game_Engine::Initialize_Common()
 
 	//visualization variables
 	output_board_last_move_char = '+';
+
+	//init global experiment/testing counter
+	experiment_repeat_index = 0;
 }
 
 /**
@@ -422,8 +425,8 @@ void Game_Engine::Output_Board_State()
 	for(int i = 0, k = 0; i < board_height; i++, k += board_length){
 		printf("\n%2d ",i+1);
 		//-----ADD-----corrected output for hex
-		for(int temp = 0; temp < i; temp++)
-			printf(" ");
+		//for(int temp = 0; temp < i; temp++)
+		//	printf(" ");
 		//-----END-----
 		for(int j = 0; j < board_length; j++){
 			if(k+j != history_moves[current_plys])
@@ -776,13 +779,14 @@ void Game_Engine::Learn_Two_Players(int num_games, int output_depth, Player_Engi
 	Learn_Players(num_games, output_depth, tmpPlayers);
 }
 
-double Game_Engine::Evaluate_Players(int num_repeats, int num_games, int output_depth, Player_Engine** players, bool rotate_starting_player, int return_score_player_num, Tom_Sample_Storage<double>** score_output)
+double Game_Engine::Evaluate_Players(int num_repeats, int num_games, int output_depth, Player_Engine** players, bool rotate_starting_player, int return_score_player_num, Tom_Sample_Storage<double>** score_output, int intermediate_output, const int measure_time_per_move)
 {
 
 	int nextMove, feedback, bestPlayer, multipleWinners;
 	double bestOutcome;
 	int output_interval, next_output;
 	double cpu_time;
+	double cpu_time1;
 
 	//check if players are correctly linked to game, otherwise exit procedure
 	players = Validate_Players(players);
@@ -801,24 +805,28 @@ double Game_Engine::Evaluate_Players(int num_repeats, int num_games, int output_
 		}
 	}
 
-	//allocate win and score counters
+	//allocate counters
 	int* win_count_total = new int[number_players+1];	//total counter for: draws | player1 | player2 | ...
 	int* win_count_local = new int[number_players+1];	//single repeat counter for: draws | player1 | player2 | ...
 	double* score_count_total = new double[number_players];
 	double* score_count_local = new double[number_players];
+	double* players_move_time_sum = new double[number_players];
+	int* players_move_count = new int[number_players];
 
 	//initialize counter values
 	win_count_total[0] = 0;
 	for(int i = 0; i < number_players; i++){
 		win_count_total[i+1] = 0;
 		score_count_total[i] = 0.0;
+		players_move_time_sum[i] = 0.0;
+		players_move_count[i] = 0;
 	}
 
 	//measure time
 	cpu_time = getCPUTime();
 
 	//execute repeats
-	for(int r = 0; r < num_repeats; r++){
+	for(batch_repeat_index = 0; batch_repeat_index < num_repeats; batch_repeat_index++){
 		
 		//reset counter values
 		win_count_local[0] = 0;
@@ -833,7 +841,7 @@ double Game_Engine::Evaluate_Players(int num_repeats, int num_games, int output_
 				players[i]->Reset();
 
 		//execute games
-		for(int g = 0; g < num_games; g++){
+		for(game_repeat_index = 0; game_repeat_index < num_games; game_repeat_index++){
 
 			//reset game state (start new game)
 			Game_New();
@@ -846,13 +854,20 @@ double Game_Engine::Evaluate_Players(int num_repeats, int num_games, int output_
 			feedback = (int)game_ended;
 			while(feedback == 0){
 
+				//measure move time
+				cpu_time1 = getCPUTime();
+
 				//current player selects next move
 				nextMove = players[current_player]->Get_Move();
+				players_move_count[current_player]++;
 
 				//call before-move procedure for all players
 				for(int i = 0; i < number_players; i++){
 					players[i]->Before_Move(nextMove);
 				}
+
+				//remember cpu time (cumulative sum)
+				players_move_time_sum[current_player] += ( getCPUTime()-cpu_time1 );
 
 				//simulate game dynamics with selected move
 #if(TOM_DEBUG)
@@ -861,9 +876,11 @@ double Game_Engine::Evaluate_Players(int num_repeats, int num_games, int output_
 				feedback = Play_Move_Unsafe(nextMove);
 #endif
 				//call after-move procedure for all players
+				cpu_time1 = getCPUTime();
 				for(int i = 0; i < number_players; i++){
 					players[i]->After_Move(nextMove);
 				}
+				players_move_time_sum[current_player] += ( getCPUTime()-cpu_time1 );
 			}
 
 			//calculate score
@@ -930,9 +947,9 @@ double Game_Engine::Evaluate_Players(int num_repeats, int num_games, int output_
 			//output depth 3: after each game
 			if(output_depth >= TOMGAME_OUTPUT_DEPTH3){
 				if(number_players == 1){
-					printf("\nL3 game   | %d\t score %6.5f", g+1, score[0]);
+					printf("\nL3 game   | %d\t score %6.5f", game_repeat_index+1, score[0]);
 				}else{
-					printf("\nL3 game   | %d\t draws %4d\t wins", g+1, win_count_local[0]);
+					printf("\nL3 game   | %d\t draws %4d\t wins", game_repeat_index+1, win_count_local[0]);
 					for(int i = 0; i < number_players; i++)
 						printf(" %4d", win_count_local[i+1]);
 					printf("\t     scores");
@@ -940,20 +957,36 @@ double Game_Engine::Evaluate_Players(int num_repeats, int num_games, int output_
 						printf(" %6.3f", score[i]);
 				}
 			}else if(output_depth == TOMGAME_OUTPUT_DEPTH1){
-				if(r*num_games+g >= next_output){
+				if(batch_repeat_index*num_games+game_repeat_index >= next_output){
 					printf(".");
 					next_output += output_interval;
 				}
 			}
 
+			if(score_output != NULL){	
+				if(intermediate_output > 0){
+					if(((score_output[return_score_player_num]->n) % intermediate_output) == 0){
+						score_output[return_score_player_num]->Calc_AvgDev();
+						score_output[return_score_player_num]->Calc_Confidence();
+						gmp->Print("%8d  %6.2f  %6.2f  %6.2f  %9.3f\n",
+							score_output[return_score_player_num]->n,
+							score_output[return_score_player_num]->avg*100,
+							score_output[return_score_player_num]->Calc_Confidence()*100,
+							score_output[return_score_player_num]->dev*100,
+							getCPUTime()-cpu_time
+						);
+					}
+				}
+			}
 		}
+		// END - games
 
 		//output depth 2: after series of games
 		if(output_depth >= TOMGAME_OUTPUT_DEPTH2){
 			if(number_players == 1){
-				printf("\nL2 REPEAT | %d\t average score %6.5f", r+1, score_count_local[0] / num_games);
+				printf("\nL2 REPEAT | %d\t average score %6.5f", batch_repeat_index+1, score_count_local[0] / num_games);
 			}else{
-				printf("\nL2 REPEAT | %d\t draws %4d\t wins", r+1, win_count_local[0]);
+				printf("\nL2 REPEAT | %d\t draws %4d\t wins", batch_repeat_index+1, win_count_local[0]);
 				for(int i = 0; i < number_players; i++)
 					printf(" %4d", win_count_local[i+1]);
 				printf("\t sum-scores");
@@ -1003,6 +1036,13 @@ double Game_Engine::Evaluate_Players(int num_repeats, int num_games, int output_
 				players[i]->Output();
 	}
 
+	//output average time per move
+	if(measure_time_per_move){
+		for(int i = 0; i < number_players; i++)
+			gmp->Print("\nTIME P%d:   %6.1lf ms/game   %6.2lf ms/move  (games %d moves %d totalTime %lf s)",i,players_move_time_sum[i] / (double)(num_repeats*num_games) * 1000.0, players_move_time_sum[i] / (double)(num_repeats*num_games*players_move_count[i]) * 1000.0 , num_repeats*num_games, players_move_count[i],players_move_time_sum[i]);
+		gmp->Print("\n\n");
+	}
+
 	//save return value
 	double tmpReturn = score_count_total[return_score_player_num];
 
@@ -1011,6 +1051,8 @@ double Game_Engine::Evaluate_Players(int num_repeats, int num_games, int output_
 	delete(win_count_local);
 	delete(score_count_total);
 	delete(score_count_local);
+	delete(players_move_time_sum);
+	delete(players_move_count);
 
 	//return score
 	return tmpReturn;

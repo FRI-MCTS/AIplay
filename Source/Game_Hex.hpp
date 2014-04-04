@@ -31,8 +31,8 @@ public:
 	void Game_Reset();
 
 	//public procedures - support
-	void Copy_Game_State_From(Game_Engine* source, bool copy_history = TOMGAME_ENGINE_COPY_GAME_HISTORY, int history_copy_start_index = 0);
-	Game_Engine* Create_Duplicate_Game(bool copy_state = TOMGAME_ENGINE_COPY_GAME_STATE, bool copy_history = TOMGAME_ENGINE_COPY_GAME_HISTORY);
+	void Copy_Game_State_From(Game_Engine* source, const bool copy_history = TOMGAME_ENGINE_COPY_GAME_HISTORY, int history_copy_start_index = 0);
+	Game_Engine* Create_Duplicate_Game(bool copy_state = TOMGAME_ENGINE_COPY_GAME_STATE, const bool copy_history = TOMGAME_ENGINE_COPY_GAME_HISTORY);
 	using Game_Engine::Get_Next_Player;
 	int Get_Next_Player(int);
 

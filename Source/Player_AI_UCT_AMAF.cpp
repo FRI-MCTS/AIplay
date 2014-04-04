@@ -917,7 +917,7 @@ void Player_AI_UCT_AMAF::UCT_Tree_Reset()
 		}
 
 		//delete root node list of children
-		delete(branchRoot->children);
+		delete[] branchRoot->children;
 		branchRoot->children = NULL;
 	}
 

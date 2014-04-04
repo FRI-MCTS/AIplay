@@ -25,7 +25,7 @@ Game_Hex::~Game_Hex(void)
 }
 
 //create duplicate game
-Game_Engine* Game_Hex::Create_Duplicate_Game(bool copy_state, bool copy_history)
+Game_Engine* Game_Hex::Create_Duplicate_Game(bool copy_state, const bool copy_history)
 {
 	//create new game by copying settings of this game
 	Game_Hex* new_game = new Game_Hex(this);
@@ -183,7 +183,7 @@ WARNING: move list is not copied
 
 @param history_copy_start_index Defines the ammount of moves from beginning where to start copying history (useful if most of the target game is same as source)
 */
-void Game_Hex::Copy_Game_State_From(Game_Engine* source, bool copy_history, int history_copy_start_index)
+void Game_Hex::Copy_Game_State_From(Game_Engine* source, const bool copy_history, int history_copy_start_index)
 {
 	//copygame state variables
 	for(int i = 0; i < board_size; i++){

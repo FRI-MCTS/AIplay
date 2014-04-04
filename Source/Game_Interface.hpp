@@ -6,7 +6,7 @@
 #include <sstream>
 #include <cstdio>
 #include <cstring>
-#include <random>
+//#include <random>
 #include <limits>
 #include <cfloat>
 //#include <cmath>
@@ -27,7 +27,11 @@
 #endif
 #define TOM_DISABLE_RANDOM	0
 
-//defines - output to file and visualization with Matlab
+//MCTS output by level
+#define TOM_GLOBAL_ENABLE_MCTS_OUTPUT_LEVEL		0
+#define TOM_GLOBAL_MCTS_OUTPUT_NUM_LEVELS		6
+
+//OLD: defines - output to file and visualization with Matlab
 //WARNING: currently implemented only for DIFFSIM and EEG testing
 #define TOM_OUTPUT_TO_MATLAB	0
 #define TOM_EXTENSIVE_TEST		~(TOM_OUTPUT_TO_MATLAB)

@@ -79,7 +79,7 @@ Tom_Sample_Storage<T>::Tom_Sample_Storage(int new_max_samples)
 template <class T>
 Tom_Sample_Storage<T>::~Tom_Sample_Storage()
 {
-	delete(samples);
+	delete[] samples;
 }
 
 template <class T>
@@ -103,7 +103,7 @@ void Tom_Sample_Storage<T>::Reset()
 template <class T>
 void Tom_Sample_Storage<T>::Reset(int new_max_samples)
 {
-	delete(samples);
+	delete[] samples;
 	Init(new_max_samples);
 }
 
@@ -182,7 +182,7 @@ template <class T>
 T Tom_Sample_Storage<T>::Calc_Sum()
 {
 	sum = (T)0.0;
-	for(int i = 0; i < max_samples; i++)
+	for(int i = 0; i < n; i++)
 		sum += samples[i];
 	return sum;
 }
@@ -206,7 +206,7 @@ template <class T>
 double Tom_Sample_Storage<T>::Calc_Dev()
 {
 	double tmpSum = 0.0;
-	for(int i = 0; i < max_samples; i++)
+	for(int i = 0; i < n; i++)
 		tmpSum += ( (samples[i]-avg)*(samples[i]-avg) );
 	dev = sqrt(tmpSum / n);
 	return dev;
