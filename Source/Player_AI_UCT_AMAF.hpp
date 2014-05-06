@@ -136,7 +136,7 @@ protected:
 
 	//private protected procedures - UCT
 	virtual int			UCT_AMAF();
-	virtual UCTnode*	UCT_AMAF_Tree_Policy(UCTnode* root);
+	virtual UCTnode*	UCT_AMAF_Tree_Policy(UCTnode* root, int simulation_number);
 	virtual UCTnode*	UCT_AMAF_Tree_Policy_Best_Child(UCTnode* parent, double param_C);
 	virtual double*		UCT_AMAF_Default_Policy(int simulation_number);
 	virtual UCTnode*	UCT_Expand(UCTnode* parent);

@@ -592,6 +592,7 @@ void Tom_Function_Approximator::Debug_Display_Weights(const int output_detail_le
 
 void Tom_Function_Approximator::Calculate_Results()
 {
+	//currently not in use
 	//current implementation: just sum the parameter weight to the output result
 	for(int i = 0; i < num_results; i++){
 		results[i] = 0.0;

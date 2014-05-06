@@ -143,20 +143,20 @@ void Game_DiffSim::Clear_Memory()
 {
 
 	//release memory space
-	delete(state);	
+	delete[] state;	
 	for(int i = 0; i < maximum_plys; i++)
-		delete(trajectory_target[i]);
-	delete(trajectory_target);
-	delete(current_number_moves);
+		delete[] trajectory_target[i];
+	delete[] trajectory_target;
+	delete[] current_number_moves;
 	for(int i = 0; i < number_players; i++){
-		delete(current_moves[i]);
-		delete(current_moves_list[i]);
+		delete[] current_moves[i];
+		delete[] current_moves_list[i];
 	}
-	delete(current_moves);
-	delete(current_moves_list);
-	delete(score);
-	delete(history_moves);
-	//delete(output_board_lookup_char);
+	delete[] current_moves;
+	delete[] current_moves_list;
+	delete[] score;
+	delete[] history_moves;
+	//delete[] output_board_lookup_char);
 }
 
 /**
@@ -251,9 +251,9 @@ void Game_DiffSim::Set_Target_Trajectory_From_File(const char* fileName, double 
 
 		//clear memory
 		for(int i = 0; i < maximum_plys; i++)
-			delete(trajectory_target[i]);
-		delete(trajectory_target);
-		delete(history_moves);
+			delete[] trajectory_target[i];
+		delete[] trajectory_target;
+		delete[] history_moves;
 
 		//apply input data
 		//TODO num atributes/dimensions = nColumns;

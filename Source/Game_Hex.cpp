@@ -25,7 +25,7 @@ Game_Hex::~Game_Hex(void)
 }
 
 //create duplicate game
-Game_Engine* Game_Hex::Create_Duplicate_Game(bool copy_state, bool copy_history)
+Game_Engine* Game_Hex::Create_Duplicate_Game(bool copy_state, const bool copy_history)
 {
 	//create new game by copying settings of this game
 	Game_Hex* new_game = new Game_Hex(this);
@@ -47,8 +47,8 @@ void Game_Hex::Init_Settings()
 	//general game settings
 	board_length = TOMGAME_HEX_BOARD_LENGTH;
 	board_height = TOMGAME_HEX_BOARD_HEIGHT;
-	big_board_length = TOMGAME_HEX_BIG_BOARD_LENGTH;
-	big_board_height = TOMGAME_HEX_BIG_BOARD_HEIGHT;
+	big_board_length = TOMGAME_HEX_BOARD_LENGTH + 2;
+	big_board_height = TOMGAME_HEX_BOARD_HEIGHT + 2;
 	board_size = board_length * board_height;
 	big_board_size = big_board_length * big_board_height;
 	number_players = 2;
@@ -62,7 +62,7 @@ void Game_Hex::Init_Settings()
 	show_warnings = TOM_DEBUG;
 
 	//game-specific settings
-	//win_connected_pieces = TOMGAME_HEX_WIN_CONNECTED_PIECES;
+
 
 }
 
@@ -73,10 +73,10 @@ void Game_Hex::Copy_Settings(Game_Engine* source_game)
 	//general game settings
 	board_length = source_game->board_length;
 	board_height = source_game->board_height;
-	big_board_length = source_game->big_board_length;
-	big_board_height = source_game->big_board_height;
+	big_board_length = ((Game_Hex*)source_game)->big_board_length;
+	big_board_height = ((Game_Hex*)source_game)->big_board_height;
 	board_size = source_game->board_size;
-	big_board_size = source_game->big_board_size;
+	big_board_size = ((Game_Hex*)source_game)->big_board_size;
 	number_players = source_game->number_players;
 	maximum_allowed_moves = source_game->maximum_allowed_moves;
 	maximum_plys = source_game->maximum_plys;
@@ -88,14 +88,12 @@ void Game_Hex::Copy_Settings(Game_Engine* source_game)
 	show_warnings = source_game->show_warnings;
 
 	//game-specific settings
-	//win_connected_pieces = ((Game_Hex*)source_game)->win_connected_pieces;
 
 }
 
 void Game_Hex::Allocate_Memory()
 {
 	//allocate resources - game state
-	sosedje = new int[6];
 	board_state = new char[board_size];
 	big_board_state = new char[big_board_size];
 	current_number_moves = new int[number_players];
@@ -106,6 +104,16 @@ void Game_Hex::Allocate_Memory()
 		current_moves_list[i] = new int[maximum_allowed_moves];
 	}
 	score = new double[number_players];
+
+	//init game state structures
+	for(int i = 0; i < big_board_length; i++){	//top and bottom: player 2
+		big_board_state[i] = -2;	
+		big_board_state[i+big_board_size-big_board_length] = -3;
+	}
+	for(int i = 1; i < big_board_height-1; i++){	//left and right: player 1
+		big_board_state[i*big_board_length] = 2;	
+		big_board_state[(i+1)*big_board_length-1] = 3;
+	}
 
 	//allocate resources - history
 	history_moves = new int[maximum_plys+1];	//added +1 to avoid access problems at game start, first value in array is -1
@@ -118,9 +126,9 @@ void Game_Hex::Allocate_Memory()
 	output_board_lookup_char[0] = 'E';
 	output_board_lookup_char[1] = '.';
 	if(number_players > 0)
-		output_board_lookup_char[2] = 'X';
+		output_board_lookup_char[2] = 'X';	//player 1 must connect left and right edges
 	if(number_players > 1)
-		output_board_lookup_char[3] = 'O';
+		output_board_lookup_char[3] = 'O';	//player 2 must connect top and bottom edges
 	for(int i = 4; i < number_players; i++)
 		output_board_lookup_char[i] = '?';	//non-specified character
 
@@ -134,19 +142,18 @@ void Game_Hex::Clear_Memory()
 {
 
 	//release memory space
-	delete(sosedje);
-	delete(board_state);
-	delete(big_board_state);
-	delete(current_number_moves);
+	delete[] board_state;
+	delete[] big_board_state;
+	delete[] current_number_moves;
 	for(int i = 0; i < number_players; i++){
-		delete(current_moves[i]);
-		delete(current_moves_list[i]);
+		delete[] current_moves[i];
+		delete[] current_moves_list[i];
 	}
-	delete(current_moves);
-	delete(current_moves_list);
-	delete(score);
-	delete(history_moves);
-	delete(output_board_lookup_char);
+	delete[] current_moves;
+	delete[] current_moves_list;
+	delete[] score;
+	delete[] history_moves;
+	delete[] output_board_lookup_char;
 }
 
 /**
@@ -159,9 +166,12 @@ void Game_Hex::Game_Reset()
 	for(int i = 0; i < board_size; i++){
 		board_state[i] = 0;
 	}
-	for(int i = 0; i < big_board_size; i++){
-		big_board_state[i] = 0;
+	for(int i = big_board_length; i < big_board_size; i += big_board_length){
+		for(int j = 1; j < big_board_length-1; j++){
+			big_board_state[i+j] = 0;
+		}
 	}
+
 	for(int j = 0; j < number_players; j++){
 		current_number_moves[j] = maximum_allowed_moves;
 		for(int i = 0; i < maximum_allowed_moves; i++){
@@ -183,14 +193,16 @@ WARNING: move list is not copied
 
 @param history_copy_start_index Defines the ammount of moves from beginning where to start copying history (useful if most of the target game is same as source)
 */
-void Game_Hex::Copy_Game_State_From(Game_Engine* source, bool copy_history, int history_copy_start_index)
+void Game_Hex::Copy_Game_State_From(Game_Engine* source, const bool copy_history, int history_copy_start_index)
 {
 	//copygame state variables
 	for(int i = 0; i < board_size; i++){
 		board_state[i] = source->board_state[i];
 	}
-	for(int i = 0; i < big_board_size; i++){
-		big_board_state[i] = source->big_board_state[i];
+	for(int i = big_board_length; i < big_board_size; i += big_board_length){
+		for(int j = 1; j < big_board_length-1; j++){
+			big_board_state[i+j] = ((Game_Hex*)source)->big_board_state[i+j];
+		}
 	}
 	for(int j = 0; j < number_players; j++){
 		current_number_moves[j] = source->current_number_moves[j];
@@ -236,10 +248,20 @@ int Game_Hex::Game_Dynamics(int selected_move)
 
 	//update avaliable moves
 	current_moves[0][selected_move] = false;
-	current_moves[1][selected_move] = false;
 	current_number_moves[0]--;
-	current_number_moves[1]--;
-	
+
+	//THE SWAP RULE (allowed only to the 2nd player after the first move of 1st player)
+	if((current_plys == 0)&&(TOMGAME_HEX_SWAP_RULE))
+		;//current_moves[1][selected_move] = true;
+	else{
+		current_moves[1][selected_move] = false;
+		current_number_moves[1]--;
+	}
+	if((current_plys == 1)&&(TOMGAME_HEX_SWAP_RULE)){
+		current_moves[1][ history_moves[0] ] = false;
+		current_number_moves[1]--;
+	}
+
 	//update game status
 	current_player = Get_Next_Player();	//by default: alternating 2-player game
 
@@ -252,7 +274,17 @@ Board winning positions for Hex: checks for connected pieces from one side to th
 */
 bool Game_Hex::Check_Game_Win(int selected_move)
 {
+	////VALUES IN big_board_length
+	//0 - empty intersection
+	//1 - player1 piece not connected to left or right border
+	//2 - player1 piece connected to left border
+	//3 - player1 piece connected to right border
+	//-1 - player2 piece not connected to top or bottom border
+	//-2 - player2 piece connected to top border
+	//-3 - player2 piece connected to bottom border
+
 	int x,y,current,xb,yb;
+	int tempL, tempR, tempT, tempB;
 
 	//optimization v1
 	x = (int)(selected_move % board_length);
@@ -284,7 +316,7 @@ bool Game_Hex::Check_Game_Win(int selected_move)
 
 			return false;
 		}
-		else if(xb == big_board_length-2){
+		else if(xb == (big_board_length-2)){
 			for(int i = 0; i < 6; i++){
 				if(big_board_state[sosedje[i]] == 2)
 					//win
@@ -298,8 +330,8 @@ bool Game_Hex::Check_Game_Win(int selected_move)
 			return false;
 		}
 		else{
-			int tempL=0;
-			int tempR=0;
+			tempL=0;
+			tempR=0;
 			for(int i = 0; i < 6; i++){
 				if(big_board_state[sosedje[i]] == 2)
 					tempL=1;
@@ -307,23 +339,23 @@ bool Game_Hex::Check_Game_Win(int selected_move)
 					tempR=1;
 
 			} 
-			if(tempL == 1 && tempR == 1)
+			if((tempL == 1) && (tempR == 1))
 				//win
 				return true;
 			else{
 				//no win
+				big_board_state[current] = 1;
 				if(tempL == 1)
-					big_board_state[current] = 2;
+					Flood(current, 1, 2);
 				else if(tempR == 1)
-					big_board_state[current] = 3;
-				else
-					big_board_state[current] = 1;
+					Flood(current, 1, 3);
+
 				return false;
 			}
 		}
 	}
 
-	//player 2 has U and D
+	//player 2 has T and B
 	else{
 		if(yb == 1){
 			for(int i = 0; i < 6; i++){
@@ -353,35 +385,35 @@ bool Game_Hex::Check_Game_Win(int selected_move)
 
 		}
 		else{
-			int tempU=0;
-			int tempD=0;
+			tempT=0;
+			tempB=0;
 			for(int i = 0; i < 6; i++){
 				if(big_board_state[sosedje[i]] == -2)
-					tempU=1;
+					tempT=1;
 				else if(big_board_state[sosedje[i]] == -3)
-					tempD=1;
+					tempB=1;
 
 			} 
-			if(tempU == 1 && tempD == 1)
+			if((tempT == 1) && (tempB == 1))
 				//win
 				return true;
 			else{
 				//no win
-				if(tempU == 1)
-					big_board_state[current] = -2;
-				else if(tempD == 1)
-					big_board_state[current] = -3;
-				else
-					big_board_state[current] = -1;
+				big_board_state[current] = -1;
+				if(tempT == 1)
+					Flood(current, -1, -2);
+				else if(tempB == 1)
+					Flood(current, -1, -3);
+
 				return false;
 			}
 		}
 	}
 }
 
-void Game_Hex::Flood(int position,int oldValue,int newValue)
+void Game_Hex::Flood(int position, const int oldValue, const int newValue)
 {
-    if(big_board_state[position]==oldValue)
+    if(big_board_state[position] == oldValue)
     {
 		big_board_state[position] = newValue;
         Flood(position - big_board_length,oldValue,newValue);
@@ -396,4 +428,83 @@ void Game_Hex::Flood(int position,int oldValue,int newValue)
 int Game_Hex::Human_Move_Translate(int human_move)
 {
 	return (human_move-1-board_length);
+}
+
+
+/**
+DEFAULT: Output current board (game) state to standard output.
+*/
+void Game_Hex::Output_Board_State()
+{	
+	//Output_Board_State_Raw();
+	//return;
+
+	gmp->Print("\n   ");
+	for(int i = 0; i < board_length; i++)
+		gmp->Print(" %d",i+1);
+	gmp->Print("\n");
+	for(int i = 0, k = 0; i < board_height; i++, k += board_length){
+		gmp->Print("\n%2d ",i+1);
+		//-----ADD-----corrected output for hex
+		for(int temp = 0; temp < i; temp++)
+			gmp->Print(" ");
+		//-----END-----
+		for(int j = 0; j < board_length; j++){
+			if(k+j != history_moves[current_plys])
+				gmp->Print(" %c", output_board_lookup_char[board_state[k+j]+1]);
+			else{
+				if(j < board_length-1){
+					gmp->Print("%c%c%c%c", output_board_last_move_char, output_board_lookup_char[board_state[k+j]+1], output_board_last_move_char, output_board_lookup_char[board_state[k+j+1]+1]);
+					j++;
+				}else
+					gmp->Print("%c%c%c", output_board_last_move_char, output_board_lookup_char[board_state[k+j]+1], output_board_last_move_char);
+			}
+		}
+	}
+	gmp->Print("\n");
+
+#if(!TOM_DEBUG)
+	gmp->Print("\nPLY: %2d\n",current_plys);
+#else
+	gmp->Print("\nPLY: %2d \t Last move: %d\n",current_plys,history_moves[current_plys]);
+#endif
+
+	gmp->Print("\n");
+	fflush(stdout);
+}
+
+/**
+DEFAULT: Output current board (game) state to standard output.
+*/
+void Game_Hex::Output_Board_State_Raw()
+{	
+	gmp->Print("\n   ");
+	for(int i = 0; i < board_length; i++)
+		gmp->Print(" %d",i+1);
+	gmp->Print("\n");
+	for(int i = 0, k = 0; i < board_height; i++, k += board_length){
+		gmp->Print("\n%2d ",i+1);
+		//-----ADD-----corrected output for hex
+		for(int temp = 0; temp < i; temp++)
+			gmp->Print(" ");
+		//-----END-----
+		for(int j = 0; j < board_length; j++){
+			if(k+j != history_moves[current_plys])
+				gmp->Print(" %d", board_state[k+j]);
+			else{
+				if(j < board_length-1){
+					gmp->Print("+%d+%d", board_state[k+j], board_state[k+j+1]);
+					j++;
+				}else
+					gmp->Print("+%d+", board_state[k+j]);
+			}
+		}
+	}
+	gmp->Print("\n");
+
+	gmp->Print("\nPLY: %2d \t Last move: %d\n",current_plys,history_moves[current_plys]);
+
+	gmp->Print("\n");
+	fflush(stdout);
+
 }

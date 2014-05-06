@@ -337,12 +337,12 @@ Player_AI_UCT::UCTnode* Player_AI_UCT::UCT_Tree_Policy_Best_Child(UCTnode* paren
 
 	double bestValue;
 	int multiple_best, randAction;
-	UCTnode* selectedChild;
+	int selectedChild_id;
 
 	//find best-valued children node
 	bestValue = -DBL_MAX;
 	multiple_best = 1;
-	selectedChild = NULL;
+	selectedChild_id = -1;
 	for(int i = 0; i < parent->number_allowed_actions; i++){
 		
 		//check if children was already allocated (for safety)
@@ -361,7 +361,7 @@ Player_AI_UCT::UCTnode* Player_AI_UCT::UCT_Tree_Policy_Best_Child(UCTnode* paren
 				multiple_best++;
 #endif
 			}else if(parent->children[i]->value > bestValue){
-				selectedChild = parent->children[i];
+				selectedChild_id = i;
 				bestValue = parent->children[i]->value;
 				multiple_best = 1;
 			}
@@ -383,7 +383,7 @@ Player_AI_UCT::UCTnode* Player_AI_UCT::UCT_Tree_Policy_Best_Child(UCTnode* paren
 			if(parent->children[i] != NULL){
 				if(parent->children[i]->value == bestValue){					
 					if(randAction <= 0){
-						selectedChild = parent->children[i];
+						selectedChild_id = i;
 						i = parent->number_allowed_actions;	//break loop
 					}else{
 						randAction--;
@@ -393,8 +393,25 @@ Player_AI_UCT::UCTnode* Player_AI_UCT::UCT_Tree_Policy_Best_Child(UCTnode* paren
 		}
 	}
 
+	//debug check
+	//dbgTmpInt2 = selectedChild_id;
+	if((selectedChild_id < 0)||(selectedChild_id >= internalGame->maximum_allowed_moves)){
+		gmp->Print("WARNING: PLAYER AI UCT: UCT_Tree_Policy_Best_Child: selectedChild_id %d (parent_moves %d game_max_moves %d) (multiple %d)\n",selectedChild_id,parent->number_allowed_actions,internalGame->maximum_allowed_moves,multiple_best);
+		//gmp->Print("---\n");
+		//gmp->Print("plyE %3d  mctsI %3d  plyI %3d   bestValue %3.3f\n", game->current_plys,MCTS_current_iterNum,simulatedGame->current_plys,bestValue);
+		//for(int i = 0; i < parent->number_allowed_actions; i++){
+		//	gmp->Print("c%2d  %3.3f\n",i,parent->children[i]->value);
+		//}
+		//gmp->Print("---\n");
+		//gmp->Flush();
+
+		//select random move
+		selectedChild_id = (int)floorf( (rand()/(float)(RAND_MAX+1)) * (float)parent->number_allowed_actions );
+	}
+	//-- end - debug check
+
 	//return selected untried action
-	return selectedChild;
+	return parent->children[selectedChild_id];
 }
 
 /**
@@ -795,7 +812,7 @@ void Player_AI_UCT::UCT_Tree_Reset()
 		}
 
 		//delete root node list of children
-		delete(branchRoot->children);
+		delete[] branchRoot->children;
 		branchRoot->children = NULL;
 	}
 

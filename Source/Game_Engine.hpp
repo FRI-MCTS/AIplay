@@ -3,6 +3,7 @@
 
 //includes
 #include "Game_Interface.hpp"
+#include "Support_MultiPrint.hpp"
 
 //defines
 #define TOMGAME_ENGINE_EVALUATE_NUM_REPEATS		100
@@ -15,8 +16,14 @@
 #define TOMGAME_ENGINE_COPY_GAME_STATE			1
 #define TOMGAME_ENGINE_CONSTRUCTOR_NO_COPY		NULL
 
+#define TOMGAME_OUTPUT_EVALUATE_INTERMEDIATE_FLUSH_TIMEINTERVAL		5.0			//the time interval in seconds between flushing output to file
+
 //defines - DEBUG
 #define TOMGAME_ENGINE_DISABLE_RANDOM			(TOM_DISABLE_RANDOM)
+
+//external global variables
+extern MultiPrinter * gmp;	//multiprinter object defined in main.hpp
+extern int experiment_settings_id;
 
 //forward declarations
 class Player_Engine;
@@ -63,6 +70,11 @@ public:
 	virtual int Get_Next_Player()			{return Get_Next_Player(current_player);};		//return next player on move
 	virtual int Get_Previous_Player()		{return Get_Previous_Player(current_player);};	//return previous player
 
+	//--- many (if not all) of the following procedures and variables should be put in Game_Interface
+
+	int experiment_repeat_index;
+	int	batch_repeat_index;
+	int game_repeat_index;
 
 	//public procedures - debug and visualization
 	void Debug_Test_Sequence();
@@ -91,10 +103,15 @@ public:
 		int	num_repeats = TOMGAME_ENGINE_EVALUATE_NUM_REPEATS,
 		int num_games = TOMGAME_ENGINE_EVALUATE_NUM_GAMES,
 		int output_depth = TOMGAME_ENGINE_EVALUATE_OUTPUT_DEPTH,
+			//-2 intermediate output every 1000
+			//-1 only final output
+			//>=0 level of output detail
 		Player_Engine** players = NULL,
 		bool rotate_starting_player = TOMGAME_ENGINE_EVALUATE_ROTATE_PLAYERS,		//CURRENTLY IMPLEMENTED ONLY FOR 2 PLAYERS
 		int return_score_player_num = 0,		//defines which players score will be returned
-		Tom_Sample_Storage<double>** score_output = NULL	//output data structure (must be preallocated externally)
+		Tom_Sample_Storage<double>** score_output = NULL,	//output data structure (must be preallocated externally)
+		int intermediate_output = 0,		//output results every "intermediate_output" repeats (0 = disabled)
+		const int measure_time_per_move = 0		//measure time per move and output at the end
 	);
 	void Evaluate_Two_Players(
 		int	num_repeats = TOMGAME_ENGINE_EVALUATE_NUM_REPEATS,
@@ -128,11 +145,6 @@ public:
 	double param_score_win;
 	double param_score_lose;
 	double param_score_draw;
-	//-----ADD-----for hex
-	int big_board_length;
-	int big_board_height;
-	int big_board_size;
-	//-----END-----
 
 	//public variables - visualization
 	char output_board_last_move_char;
@@ -149,9 +161,6 @@ public:
 	double* score;
 	int current_player;
 	bool game_ended;
-	//-----ADD-----for hex
-	char*	big_board_state;
-	//-----END-----
 
 	//public variables - game history
 	int current_plys;

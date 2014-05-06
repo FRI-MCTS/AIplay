@@ -97,6 +97,8 @@
     <ClCompile Include="Source\Player_AI_UCT_TomTest.cpp" />
     <ClCompile Include="Source\Player_Engine.cpp" />
     <ClCompile Include="Source\Game_TicTacToe.cpp" />
+    <ClCompile Include="Source\Support_FastApproximatePow.cpp" />
+    <ClCompile Include="Source\Support_MultiPrint.cpp" />
     <ClCompile Include="Source\Support_GetCPUTime.cpp" />
     <ClCompile Include="Source\GoGameEngine.cpp" />
     <ClCompile Include="Source\main.cpp" />
@@ -116,6 +118,8 @@
     <ClInclude Include="Source\Game_Hex.hpp" />
     <ClInclude Include="Source\Game_Interface.hpp" />
     <ClInclude Include="Source\Game_TicTacToe.hpp" />
+    <ClInclude Include="Source\Support_FastApproximatePow.hpp" />
+    <ClInclude Include="Source\Support_MultiPrint.hpp" />
     <ClInclude Include="Source\Support_GetCPUTime.hpp" />
     <ClInclude Include="Source\GoGameEngine.hpp" />
     <ClInclude Include="Source\main.hpp" />

@@ -230,7 +230,7 @@ int Player_AI_UCT_AMAF::UCT_AMAF()
 		//printf("sim player %d\n",simulatedGame->current_player);
 
 		//UCT algorithm
-		selected_leaf = UCT_AMAF_Tree_Policy(UCTroot);
+		selected_leaf = UCT_AMAF_Tree_Policy(UCTroot, i);
 		final_rewards = UCT_AMAF_Default_Policy(i);
 		UCT_AMAF_Backup(selected_leaf, final_rewards, i);
 
@@ -292,7 +292,7 @@ int Player_AI_UCT_AMAF::UCT_AMAF()
 	}
 }
 
-Player_AI_UCT_AMAF::UCTnode* Player_AI_UCT_AMAF::UCT_AMAF_Tree_Policy(UCTnode* root)
+Player_AI_UCT_AMAF::UCTnode* Player_AI_UCT_AMAF::UCT_AMAF_Tree_Policy(UCTnode* root, int simulation_number)
 {
 //--
 	UCTnode* currentNode = root;
@@ -334,6 +334,9 @@ Player_AI_UCT_AMAF::UCTnode* Player_AI_UCT_AMAF::UCT_AMAF_Tree_Policy(UCTnode* r
 			printf("-tree expand-\n");
 			#endif
 		}
+
+		//AMAF heuristic: remember moves (was erroneously missing prior to 28.4.2014, paper1 didnt have this)
+		AMAF_flagList[currentNode->action_index] = simulation_number + 1;
 
 #if(TOMPLAYER_AI_UCT_AMAF_VISUALIZE_UCT_ACTIONS_TREE)
 		//sprintf(visualizeActionsTree, "  > %2d", currentNode->action_index);
@@ -917,7 +920,7 @@ void Player_AI_UCT_AMAF::UCT_Tree_Reset()
 		}
 
 		//delete root node list of children
-		delete(branchRoot->children);
+		delete[] branchRoot->children;
 		branchRoot->children = NULL;
 	}
 

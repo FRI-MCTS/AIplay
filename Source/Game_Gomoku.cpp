@@ -125,17 +125,17 @@ void Game_Gomoku::Clear_Memory()
 {
 
 	//release memory space
-	delete(board_state);
-	delete(current_number_moves);
+	delete[] board_state;
+	delete[] current_number_moves;
 	for(int i = 0; i < number_players; i++){
-		delete(current_moves[i]);
-		delete(current_moves_list[i]);
+		delete[] current_moves[i];
+		delete[] current_moves_list[i];
 	}
-	delete(current_moves);
-	delete(current_moves_list);
-	delete(score);
-	delete(history_moves);
-	delete(output_board_lookup_char);
+	delete[] current_moves;
+	delete[] current_moves_list;
+	delete[] score;
+	delete[] history_moves;
+	delete[] output_board_lookup_char;
 }
 
 /**

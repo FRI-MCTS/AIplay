@@ -138,7 +138,7 @@ protected:
 
 	//private protected procedures - UCT
 	virtual int			UCT_RAVE();
-	virtual UCTnode*	UCT_RAVE_Tree_Policy(UCTnode* root);
+	virtual UCTnode*	UCT_RAVE_Tree_Policy(UCTnode* root, int simulation_number);
 	virtual UCTnode*	UCT_RAVE_Tree_Policy_Best_Child(UCTnode* parent, double param_C);
 	virtual double*		UCT_RAVE_Default_Policy(int simulation_number);
 	virtual UCTnode*	UCT_Expand(UCTnode* parent);

@@ -9,12 +9,12 @@
 
 //include other
 
-#include "Game_Hex.hpp"
 #include "Game_ConnectFour.hpp"
 #include "Game_Gomoku.hpp"
 #include "Game_TicTacToe.hpp"
 #include "Game_DiffSim.hpp"
 #include "Game_EEG.hpp"
+#include "Game_Hex.hpp"
 
 #include "Player_Engine.hpp"
 #include "Player_AI_Simple.hpp"
@@ -28,6 +28,7 @@
 #include "Tom_Lrp.hpp"
 #include "Tom_Sample_Storage.hpp"
 
+#include "Support_MultiPrint.hpp"
 #include "Support_InputFile.hpp"
 
 
@@ -35,6 +36,8 @@ using namespace std;
 
 
 //defines
+#define TOM_GLOBAL_DUPLICATE_OUTPUT_TO_FILE		1
+
 #define TOM_OUTPUT_FOLDER				(".\\Runtime_Output\\")
 #define TOM_OUTPUT_DATA_FILE_TEXT_TAG	("output_data")
 #define TOM_OUTPUT_CONF_FILE_TEXT_TAG	("output_conf")
@@ -66,6 +69,6 @@ string output_data_filename;
 string output_conf_filename;
 string extern_call_command;
 
-
+MultiPrinter * gmp;
 
 #endif
