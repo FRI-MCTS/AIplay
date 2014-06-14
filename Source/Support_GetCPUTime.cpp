@@ -1,3 +1,4 @@
+#include <time.h>
 #include "Support_GetCPUTime.hpp"
 
 /**

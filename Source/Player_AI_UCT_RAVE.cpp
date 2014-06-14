@@ -1,3 +1,4 @@
+#include <stdlib.h>
 //include header
 #include "Player_AI_UCT_RAVE.hpp"
 
@@ -412,7 +413,7 @@ Player_AI_UCT_RAVE::UCTnode* Player_AI_UCT_RAVE::UCT_RAVE_Tree_Policy_Best_Child
 
 	//if multiple best actions/children, break ties uniformly random
 	if(multiple_best > 1){
-		randAction = (int)( (rand()/(float)(RAND_MAX+1)) * multiple_best );
+		randAction = (int)( (rand()/(float)(RAND_MAX)) * multiple_best ); //TODO overflow
 		for(int i = 0; i < parent->number_allowed_actions; i++){
 			if(parent->children[i] != NULL){
 				if(parent->children[i]->value == bestValue){					
@@ -458,7 +459,7 @@ Player_AI_UCT_RAVE::UCTnode* Player_AI_UCT_RAVE::UCT_Expand(UCTnode* parent){
 
 	//choose random untried action
 #if(!TOMPLAYER_AI_UCT_RAVE_DEBUG_DISABLE_RANDOM)
-	randAction = (int)((rand()/(float)(RAND_MAX+1))*(parent->number_allowed_actions - parent->number_explored_children));
+	randAction = (int)((rand()/(float)(RAND_MAX))*(parent->number_allowed_actions - parent->number_explored_children)); //TODO overflow
 #else
 	randAction = 0;
 #endif

@@ -1,3 +1,4 @@
+#include <math.h>
 //include header
 #include "main.hpp"
 
@@ -757,7 +758,7 @@ void LRP_improved_v1(double* score_avg, double* score_avg_last10, double** last_
 			//re-evaluate with higher number of games if confidence below threshold (lrp_score_diff_conf_factor)
 			num_games_tmp = (int)(((max_increase_num_games_fact-1.0)*num_games) * (1.0 - min(1.0, max(confidence_normal_dist1, confidence_normal_dist2) / lrp_score_diff_conf_factor)));
 			if((num_games_tmp > 0) && (stat_run_once == 0)){										//if confidence below threshold, then repeat player evaluation with higher number of games
-				num_games_tmp = (int)max(num_games_tmp, num_games*(min_increase_num_games_fact - 1.0));		//set number of additional games minimum to increase_num_games_thr
+				num_games_tmp = (int)fmax(num_games_tmp, num_games*(min_increase_num_games_fact - 1.0));		//set number of additional games minimum to increase_num_games_thr
 				score_tmp = game->Evaluate_Players(1,num_games_tmp,-1,players,false,eval_player_position) / num_games_tmp;	//perform additional evaluations
 				score = (score_tmp*num_games_tmp + score*num_games) / (num_games_tmp + num_games);	//update score
 				num_games += num_games_tmp;		//update number of evaluation games
@@ -3484,7 +3485,7 @@ int main(int argc, char* argv[])
 #endif
 
 	char tmpString[256];
-	sprintf_s(tmpString, "__%4d-%d%d-%d%d-%d%d-%d%d-%d%d",
+	sprintf(tmpString, "__%4d-%d%d-%d%d-%d%d-%d%d-%d%d",
 					program_start_time->tm_year+1900,
 					(int)(program_start_time->tm_mon+1) / 10,
 					(int)(program_start_time->tm_mon+1) % 10,

@@ -1,3 +1,5 @@
+#include <stdlib.h>
+
 //include circular reference
 #include "Player_Engine.hpp"
 
@@ -85,7 +87,7 @@ int Game_Engine::Select_Move_Random()
 #if(TOMGAME_ENGINE_DISABLE_RANDOM)
 	r = 0;
 #else
-	r = (int)( (rand()/(float)(RAND_MAX+1)) * (current_number_moves[current_player]) );
+	r = (int)( (rand()/(float)(RAND_MAX)) * (current_number_moves[current_player]) ); //TODO overflow
 #endif
 
 	return Select_Move_Unsafe(r);

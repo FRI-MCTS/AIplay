@@ -1,3 +1,4 @@
+#include <stdlib.h>
 //include header
 #include "Player_AI_Simple.hpp"
 
@@ -34,7 +35,7 @@ void Player_AI_Simple::Init_Settings()
 	all_actions_num =	game->maximum_allowed_moves;
 
 	//init learning settings
-	explorationFactor =	(int)(TOMPlayer_AI_Simple_PARAM_EXPLORE_FACTOR*(float)(RAND_MAX+1));
+	explorationFactor =	(int)(TOMPlayer_AI_Simple_PARAM_EXPLORE_FACTOR*(float)(RAND_MAX)); // TODO: overflow
 	selectMoveType =	TOMPlayer_AI_Simple_PARAM_MOVE_TYPE;
 }
 
@@ -101,7 +102,7 @@ int Player_AI_Simple::Play_Move(){
 			}
 		}
 
-		randThres = rand()/(float)(RAND_MAX+1) * sumWeights;
+		randThres = rand()/(float)(RAND_MAX) * sumWeights; //TODO overflow
 
 		//if all actions are bad select a random one
 		if(sumWeights == 0.0){
@@ -156,7 +157,7 @@ int Player_AI_Simple::Play_Move_Best(){
 
 		//if multiple best actions, choose one at random
 		if(multiple_best > 1){
-			randThres = (int)(rand()/(float)(RAND_MAX+1) * multiple_best);
+			randThres = (int)(rand()/(float)(RAND_MAX) * multiple_best); //TODO overflow
 			if(actionsWeight[0] == bestWeight){
 				if(randThres == 0)
 					selected = 0;

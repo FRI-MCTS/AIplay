@@ -3,6 +3,7 @@ Lrp Learning automata
 */
 
 //includes
+#include <float.h>
 #include "Tom_Lrp.hpp"
 
 
@@ -119,7 +120,7 @@ int Tom_Lrp::Select_Action(const int check_sum)
 
 	//set random threshold
 	#if(!TOM_LRP_USE_SQUARE_RANDOM)
-		double rand_val = (double)rand()/(RAND_MAX+1);
+		double rand_val = (double)rand()/(RAND_MAX); //TODO overflow
 	#else
 		double rand_val = rand()*rand()/(RAND_MAX*RAND_MAX+1);
 	#endif

@@ -1,3 +1,4 @@
+#include <stdlib.h>
 //include header
 #include "GoGameEngine.hpp"
 
@@ -11,6 +12,8 @@
 #define GOENG_VALID_SOUT(pos)	(pos < board_size-board_length)
 #define GOENG_VALID_WEST(pos)	(boardState[pos].column > 0)
 #define GOENG_VALID_EAST(pos)	(boardState[pos].column < board_length-1)
+
+typedef long long int INT64;
 
 //default constructor
 //GoGameEngine::GoGameEngine()
@@ -689,7 +692,7 @@ Support function for selecting a random action. Notice that srand(time(NULL)) sh
 @return Number of selected action, including PASS (from 0 to board_size)
 */
 int GoGameEngine::randomAction(){
-	return selectActionUnsafe( ((int)((rand()/(float)(RAND_MAX+1))*(num_moves[current_player]))));
+	return selectActionUnsafe( ((int)((rand()/(float)(RAND_MAX))*(num_moves[current_player])))); //TODO overflow
 	//return selectAction(num_moves[current_player]);	//DEBUG: always choose last action
 }
 
@@ -748,11 +751,11 @@ void GoGameEngine::output_chains_to_STD(){
 				printf(" ---");
 			}else{
 				if(boardState[k+j].stone == 0){
-					printf(" %2de", (boardState[k+j].belonging_chain - chains));
+					printf(" %2lde", (boardState[k+j].belonging_chain - chains));
 				}else if(boardState[k+j].stone == 1){
-					printf(" %2db", (boardState[k+j].belonging_chain - chains));
+					printf(" %2ldb", (boardState[k+j].belonging_chain - chains));
 				}else if(boardState[k+j].stone == 2){
-					printf(" %2dw", (boardState[k+j].belonging_chain - chains));
+					printf(" %2ldw", (boardState[k+j].belonging_chain - chains));
 				}else{
 					printf(" err");
 				}
