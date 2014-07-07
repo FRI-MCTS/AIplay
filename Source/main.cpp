@@ -71,9 +71,9 @@ void Main_Testing()
 	//TicTacToe_Implementation_Test1();
 	//Go_Testing();
 
-	//Fixed_Play_Testing();				//evaluate fixed settings (no LRP)
+	Fixed_Play_Testing();				//evaluate fixed settings (no LRP)
 	//LRP_improved_v1();				//single LRP run
-	LRP_test_wrapperMultiPar();		//multiple LRP repeats
+	//LRP_test_wrapperMultiPar();		//multiple LRP repeats
 
 	//Tom_Paper1_tests();
 }
@@ -1158,7 +1158,7 @@ void Fixed_Play_Testing(double input_param1, double input_param2)
 
 	//--- SET BENCHMARK PARAMETERS HERE ---//
 
-	int repeats = 100000;
+	int repeats = 5000;
 		//1000000, 95% confidence that true value deviates less by 0.1%
 		//200000,  95% confidence that true value deviates less by 0.3%
 		//20000,   95% confidence that true value deviates less by 1%
@@ -1175,8 +1175,7 @@ void Fixed_Play_Testing(double input_param1, double input_param2)
 		//1 - replace opponent AI player with human input and output game state after every move
 	int display_output_game = 0;	//display single output game regardless of human or AI opponent
 	int measure_time_per_move = 0;	//output time per move for each player at end of evaluation procedure
-	//int output_interval_repeats = (int)(sqrt(repeats));	//output interval of average values from evaluation function (0 = disabled)
-	int output_interval_repeats = 1;
+	int output_interval_repeats = (int)(sqrt(repeats));	//output interval of average values from evaluation function (0 = disabled)
 	//int output_interval_repeats = 0;
 
 	//--- SET PLAYERS PARAMETERS HERE ---//
@@ -1191,7 +1190,7 @@ void Fixed_Play_Testing(double input_param1, double input_param2)
 	//evaluated->UCT_param_IterNum = (int)input_param2;
 	evaluated->UCT_param_IterNum = 100;
 	evaluated->UCT_param_C = 0.2;//0.5/sqrt(2);
-	//evaluated->AMAF_param_alpha = 0.8;
+	evaluated->AMAF_param_alpha = 1.0;
 	//evaluated->RAVE_param_V = 35;
 	//evaluated->UCT_param_C = -5.7522;		
 

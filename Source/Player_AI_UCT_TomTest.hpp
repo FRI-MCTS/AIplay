@@ -36,7 +36,7 @@ ISSUES: PRESERVING TREE CURRENTLY NOT IMPLEMENTED COMPLETLY
 
 #define TOMPLAYER_AI_UCT_TOMTEST_USE_MOVING_AVERAGE			0	//replace MC with moving average value
 
-#define TOMPLAYER_AI_UCT_TOMTEST_AMAF_EQUATION_TYPE			0	//enable the use AMAF heuristic (if > 0)
+#define TOMPLAYER_AI_UCT_TOMTEST_AMAF_EQUATION_TYPE			1	//enable the use AMAF heuristic (if > 0)
 	//0 - disabled: plain UCB (MC + UCB) (default)
 	//1 - alpha-AMAF original		a*AMAF + (1-a)*(MC + C*UCB) - in our paper equation amaf1
 	//2 - alpha-AMAF variant 1		a*AMAF + (1-a)*MC + C*UCB
