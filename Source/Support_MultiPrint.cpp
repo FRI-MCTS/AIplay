@@ -72,37 +72,43 @@ void MultiPrinter::Close_Output_Files()
 
 void MultiPrinter::Print(const char* format, ...)
 {
-	va_list vl;
+	va_list vl, vl2;
 	va_start(vl, format);
+	va_copy(vl2, vl);
 
 	vfprintf(stdout,format,vl);
 	if(print_also_to_file)
-		vfprintf(output_files[selected_file],format,vl);
+		vfprintf(output_files[selected_file],format,vl2);
 
 	va_end(vl);
+	va_end(vl2);
 }
 
 void MultiPrinter::Print(FILE * output1, const char* format, ...)
 {
-	va_list vl;
+	va_list vl, vl2;
 	va_start(vl, format);
+	va_copy(vl2, vl);
 
 	vfprintf(output1,format,vl);
 	if(print_also_to_file)
-		vfprintf(output_files[selected_file],format,vl);
+		vfprintf(output_files[selected_file],format,vl2);
 
 	va_end(vl);
+	va_end(vl2);
 }
 void MultiPrinter::Print(int id_file1, const char* format, ...)
 {
-	va_list vl;
+	va_list vl, vl2;
 	va_start(vl, format);
+	va_copy(vl2, vl);
 
 	vfprintf(output_files[id_file1],format,vl);
 	if(print_also_to_file)
-		vfprintf(output_files[selected_file],format,vl);
+		vfprintf(output_files[selected_file],format,vl2);
 
 	va_end(vl);
+	va_end(vl2);
 }
 
 
@@ -128,44 +134,52 @@ void MultiPrinter::PrintI(int id_file1, const char* format, ...)
 
 void MultiPrinter::Print(FILE * output1, FILE * output2, const char* format, ...)
 {
-	va_list vl;
+	va_list vl, vl2;
 	va_start(vl, format);
+	va_copy(vl2, vl);
 
 	vfprintf(output1,format,vl);
-	vfprintf(output2,format,vl);
+	vfprintf(output2,format,vl2);
 
 	va_end(vl);
+	va_end(vl2);
 }
 
 void MultiPrinter::Print(int id_file1, int id_file2, const char* format, ...)
 {
-	va_list vl;
+	va_list vl, vl2;
 	va_start(vl, format);
+	va_copy(vl2, vl);
 
 	vfprintf(output_files[id_file1],format,vl);
-	vfprintf(output_files[id_file2],format,vl);
+	vfprintf(output_files[id_file2],format,vl2);
 
 	va_end(vl);
+	va_end(vl2);
 }
 
 void MultiPrinter::Print(FILE * output1, int id_file2, const char* format, ...)
 {
-	va_list vl;
+	va_list vl, vl2;
 	va_start(vl, format);
+	va_copy(vl2, vl);
 
 	vfprintf(output1,format,vl);
-	vfprintf(output_files[id_file2],format,vl);
+	vfprintf(output_files[id_file2],format,vl2);
 
 	va_end(vl);
+	va_end(vl2);
 }
 
 void MultiPrinter::Print(int id_file1, FILE * output2, const char* format, ...)
 {
-	va_list vl;
+	va_list vl, vl2;
 	va_start(vl, format);
+	va_copy(vl2, vl);
 
 	vfprintf(output_files[id_file1],format,vl);
-	vfprintf(output2,format,vl);
+	vfprintf(output2,format,vl2);
 
 	va_end(vl);
+	va_end(vl2);
 }
