@@ -44,7 +44,7 @@ void Main_Testing()
 {
 
 #if(!TOM_DEBUG)
-	srand((unsigned int)time(NULL));
+    SET_SEED();
 #endif
 
 	//Benchmark();
@@ -72,8 +72,8 @@ void Main_Testing()
 	//Go_Testing();
 
 	//Fixed_Play_Testing();				//evaluate fixed settings (no LRP)
-	//LRP_improved_v1();				//single LRP run
-	LRP_test_wrapperMultiPar();		//multiple LRP repeats
+    LRP_improved_v1();				//single LRP run
+	//LRP_test_wrapperMultiPar();		//multiple LRP repeats
 
 	//Tom_Paper1_tests();
 }
@@ -610,7 +610,7 @@ void LRP_improved_v1(double* score_avg, double* score_avg_last10, double** last_
 	//results storage
 	Tom_Sample_Storage<double>* score_history = new Tom_Sample_Storage<double>(num_LRP_iterations+1);
 
-	srand((unsigned int)time(NULL));
+    SET_SEED();
 	double cpu_time = getCPUTime();
 	double cpu_time1;
 
@@ -1674,9 +1674,13 @@ void Hex_Testing()
 	playerUCT2->UCT_param_C = 0.7 / (2*sqrt(2));
 
 	//testing
-	unsigned int tmpr = (unsigned int)time(NULL);
-	srand(tmpr);
-	//srand(1362238250);
+#ifdef ENABLE_RANDOM
+    int tmpr = (unsigned int)time(NULL);
+#else
+    int tmpr = SEED;
+#endif
+    srand(tmpr);
+    //srand(1362238250);
 	double cpu_time = getCPUTime();
 	//gomoku->Simulate_Output_Game();
 	hex->Game_Reset();
@@ -1995,7 +1999,7 @@ void LRP_test_linAB_exponentDW_FunApp_MulParams(double* score_avg, double* score
 	//results storage
 	Tom_Sample_Storage<double>* score_history = new Tom_Sample_Storage<double>(num_LRP_iterations);
 
-	srand((unsigned int)time(NULL));
+    SET_SEED();
 	double cpu_time = getCPUTime();
 
 	//calculate exponential time constant
@@ -2229,7 +2233,7 @@ void LRP_test_linAB_exponentDW_FunApp(double* score_avg, double* score_avg_last1
 	//results storage
 	Tom_Sample_Storage<double>* score_history = new Tom_Sample_Storage<double>(num_LRP_iterations);
 
-	srand((unsigned int)time(NULL));
+    SET_SEED();
 	double cpu_time = getCPUTime();
 
 	//calculate exponential time constant
@@ -2402,7 +2406,7 @@ void LRP_test_linAB_exponentDW(double* score_avg, double* score_avg_last10, doub
 	//results storage
 	Tom_Sample_Storage<double>* score_history = new Tom_Sample_Storage<double>(num_LRP_iterations);
 
-	srand((unsigned int)time(NULL));
+    SET_SEED();
 	double cpu_time = getCPUTime();
 
 	//calculate exponential time constant
@@ -2555,7 +2559,7 @@ void LRP_test_exponentDW()
 	((Player_AI_UCT*) players[0])->UCT_param_C = start_c1;
 	((Player_AI_UCT*) players[1])->UCT_param_C = start_c2;
 
-	srand((unsigned int)time(NULL));
+    SET_SEED();
 	double cpu_time = getCPUTime();
 
 	//calculate exponential time constant
@@ -2685,8 +2689,8 @@ void LRP_test_linearDW()
 	((Player_AI_UCT*) players[0])->UCT_param_C = start_c1;
 	((Player_AI_UCT*) players[1])->UCT_param_C = start_c2;
 
-	srand((unsigned int)time(NULL));
-	double cpu_time = getCPUTime();
+	SET_SEED();
+    double cpu_time = getCPUTime();
 
 	printf("LRP_test_linearDW()\n");
 	printf("Test setup:\n");
@@ -2810,7 +2814,7 @@ void LRP_test_basic()
 	((Player_AI_UCT*) players[0])->UCT_param_C = start_c1;
 	((Player_AI_UCT*) players[1])->UCT_param_C = start_c2;
 
-	srand((unsigned int)time(NULL));
+
 	double cpu_time = getCPUTime();
 
 	printf("LRP_test_basic()\n");
@@ -3372,8 +3376,12 @@ void Gomoku_Testing()
 	playerUCT2->UCT_param_C = 1.0 / (2*sqrt(2));
 
 	//testing
-	unsigned int tmpr = (unsigned int)time(NULL);
-	srand(tmpr);
+#ifdef ENABLE_RANDOM
+    int tmpr = (unsigned int)time(NULL);
+#else
+    int tmpr = SEED;
+#endif
+    srand(tmpr);
 	//srand(1362238250);
 
 	//gomoku->Simulate_Output_Game();

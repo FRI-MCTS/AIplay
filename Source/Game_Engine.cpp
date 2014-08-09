@@ -6,6 +6,8 @@
 //include header
 #include "Game_Engine.hpp"
 
+#include "MPI.hpp"
+
 //allocate memory and initialize variables
 void Game_Engine::Initialize()
 {
@@ -1296,7 +1298,7 @@ Player_Engine** Game_Engine::Validate_Players(Player_Engine** specified_players)
 //*/
 //void Game_Engine::benchmarkSeries(){
 //	
-//	srand((unsigned int)time(NULL));
+//  SET_SEED();
 //
 //	Game_Engine game02(2);
 //	Game_Engine game05(5);

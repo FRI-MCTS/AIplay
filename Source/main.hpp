@@ -1,8 +1,8 @@
 #ifndef _TOM_MAIN_
 #define _TOM_MAIN_
 
-//include C libraries
 
+//include C libraries
 #include <iostream>
 #include <cstdio>
 #include <ctime>
@@ -31,6 +31,7 @@
 #include "Support_MultiPrint.hpp"
 #include "Support_InputFile.hpp"
 
+#include "MPI.hpp"
 
 using namespace std;
 

@@ -1,6 +1,7 @@
 #include <stdlib.h>
 //include header
 #include "GoGameEngine.hpp"
+#include "MPI.hpp"
 
 //MACRO defines
 #define GOENG_NORT(pos) (pos-board_length)
@@ -940,8 +941,8 @@ double GoGameEngine::benchmark_scoring(int num_games, float moves_percent, int n
 A series of benchmarks to measure execution time.
 */
 void GoGameEngine::benchmarkSeries(){
-	
-	srand((unsigned int)time(NULL));
+
+    SET_SEED();
 
 	GoGameEngine game02(2);
 	GoGameEngine game05(5);
@@ -1156,7 +1157,7 @@ void GoGameEngine::evaluatePlayersPerformance(PlayerGo** players, int num_repeat
 		printf(" %% win P1 | win P1 | win P2 | draws \n");
 
 	//execute games
-	srand((unsigned int)time(NULL));
+    SET_SEED();
 	for(int j = 0; j < num_repeats; j++){
 		
 		winP1 = 0;
