@@ -5,6 +5,15 @@
 *.suo
 *.user
 *.sln.docstates
+Source/grid
+Source/results
+Source/tags
+patches/
+*.swp
+*.swo
+*.txt
+Source/cscope.out
+Grid
 
 # Build results
 

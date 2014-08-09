@@ -1,10 +1,10 @@
-CXX = g++
+CXX = mpic++
 RM = rm -f
 CPPFLAGS = -g
 
 SRCS = $(shell ls *.cpp)
 OBJS = $(subst .cpp,.o, $(SRCS))
-INCLUDES = -I./matlab_engine
+#INCLUDES = -I./matlab_engine
 LIBS = -lm -lrt
 
 MAIN = aiplay
