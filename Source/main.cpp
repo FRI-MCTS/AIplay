@@ -1,6 +1,11 @@
 #include <math.h>
 //include header
 #include "main.hpp"
+#include "MPI.hpp"
+
+#ifdef ENABLE_MPI
+#include <mpi.h>
+#endif
 
 //prototypes
 void Main_Testing();
@@ -38,6 +43,11 @@ void LRP_improved_v1(double* score_avg = NULL, double* score_avg_last10 = NULL, 
 void Fixed_Play_Testing(double input_param1 = 0.0, double input_param2 = 0.0);
 
 void Tom_Paper1_tests();
+
+#ifdef ENABLE_MPI
+int mpi_rank, mpi_num_proc;
+#endif
+
 
 //---- WRITE OWN CODE IN THIS PROCEDURE ----
 void Main_Testing()
@@ -618,7 +628,11 @@ void LRP_improved_v1(double* score_avg, double* score_avg_last10, double** last_
 	double dw_tau		= (double) num_LRP_iterations / (log(dw_start/dw_limit));
 
 	//output test settings
-	if((!silence_output)||(force_setting_output)){
+	if(((!silence_output)||(force_setting_output))
+#ifdef ENABLE_MPI
+       && !mpi_rank
+#endif
+       ) {
 		gmp->Print("LRP_improved_v1()\n");
 		gmp->Print("%s\n",game->game_name.c_str());
 		gmp->Print("Players: "); for(int i = 0; i < 2; i++) gmp->Print("%s \t",players[i]->player_name.c_str()); gmp->Print("\n");
@@ -658,7 +672,8 @@ void LRP_improved_v1(double* score_avg, double* score_avg_last10, double** last_
 
 	//evaluate starting setting
 	score = game->Evaluate_Players(1,num_games,-1,players,false,eval_player_position) / num_games;
-	score_history->Add_Sample(score);
+
+    score_history->Add_Sample(score);
 	Lrp->Evaluations_History_Add_Sample(-1, num_games, score, 0.0, funcApp1->parameter_weights);
 	total_games_count = num_games;
 		
@@ -960,6 +975,13 @@ void LRP_improved_v1(double* score_avg, double* score_avg_last10, double** last_
 	delete(optimizingPlayer);
 	delete(opponent);
 	delete(game);
+
+#ifdef ENABLE_MPI
+    MPI_Finalize();
+
+    if (mpi_rank)
+        exit(0);
+#endif
 }
 
 void LRP_test_wrapperMultiPar()
@@ -3381,7 +3403,7 @@ void Gomoku_Testing()
 #else
     int tmpr = SEED;
 #endif
-    srand(tmpr);
+	srand(tmpr);
 	//srand(1362238250);
 
 	//gomoku->Simulate_Output_Game();
@@ -3480,7 +3502,14 @@ void TicTacToe_Implementation_Test1(){
 //main procedure
 int main(int argc, char* argv[])
 {
-	//save program start time to global variable
+#ifdef ENABLE_MPI
+    MPI_Init (&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &mpi_num_proc);
+    fprintf (stderr, "I'm process number %d\n", mpi_rank);
+#endif
+
+    //save program start time to global variable
 #if ((_WIN32 || _WIN64) && _MSC_VER)
 	__time64_t long_time;
 	_time64( &long_time );								// Get time as 64-bit integer.

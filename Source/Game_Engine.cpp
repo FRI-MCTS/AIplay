@@ -1,12 +1,19 @@
 #include <stdlib.h>
 
+#include "MPI.hpp"
+#ifdef ENABLE_MPI
+#include <mpi.h>
+#endif
+
 //include circular reference
 #include "Player_Engine.hpp"
 
 //include header
 #include "Game_Engine.hpp"
 
-#include "MPI.hpp"
+#ifdef ENABLE_MPI
+extern int mpi_rank, mpi_num_proc;
+#endif
 
 //allocate memory and initialize variables
 void Game_Engine::Initialize()
@@ -785,7 +792,6 @@ void Game_Engine::Learn_Two_Players(int num_games, int output_depth, Player_Engi
 
 double Game_Engine::Evaluate_Players(int num_repeats, int num_games, int output_depth, Player_Engine** players, bool rotate_starting_player, int return_score_player_num, Tom_Sample_Storage<double>** score_output, int intermediate_output, const int measure_time_per_move)
 {
-
 	int nextMove, feedback, bestPlayer, multipleWinners;
 	double bestOutcome;
 	int output_interval, next_output;
@@ -1001,7 +1007,27 @@ double Game_Engine::Evaluate_Players(int num_repeats, int num_games, int output_
 					printf(" %5.3f", (float)win_count_local[i]/num_games);
 			}
 		}
-		
+
+#ifdef ENABLE_MPI
+        if(!mpi_rank) {
+            int *tmp_count = new int[number_players+1];
+            MPI_Status status;
+
+            for (int i = 1; i < mpi_num_proc; i++) {
+                MPI_Recv(tmp_count, number_players+1, MPI_INT, i, 0,
+                         MPI_COMM_WORLD, &status);
+
+                printf ("##+ I received score!\n");
+                for (int k = 0; k < number_players + 1; k++)
+                    win_count_total[k] += tmp_count[k];
+            }
+        }
+        else {
+            MPI_Send(win_count_total, number_players+1, MPI_INT,
+                0, 0, MPI_COMM_WORLD);
+            printf ("##- I sent score! RANK: %d\n", mpi_rank);
+        }
+#endif
 		//calculate avgerage and deviation in external score storing structure
 		if(score_output != NULL){	
 			score_output[0]->Calc_AvgDev();
