@@ -693,7 +693,7 @@ Support function for selecting a random action. Notice that srand(time(NULL)) sh
 @return Number of selected action, including PASS (from 0 to board_size)
 */
 int GoGameEngine::randomAction(){
-	return selectActionUnsafe( ((int)((rand()/(float)(RAND_MAX))*(num_moves[current_player])))); //TODO overflow
+	return selectActionUnsafe( ((int)((rand()/(double)(RAND_MAX + 1.0))*(num_moves[current_player])))); //TODO overflow
 	//return selectAction(num_moves[current_player]);	//DEBUG: always choose last action
 }
 

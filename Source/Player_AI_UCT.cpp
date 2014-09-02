@@ -379,7 +379,7 @@ Player_AI_UCT::UCTnode* Player_AI_UCT::UCT_Tree_Policy_Best_Child(UCTnode* paren
 
 	//if multiple best actions/children, break ties uniformly random
 	if(multiple_best > 1){
-		randAction = (int)( (rand()/(float)(RAND_MAX)) * multiple_best ); //TODO overflow
+		randAction = (int)( (rand()/(double)(RAND_MAX + 1.0)) * multiple_best ); //TODO overflow
 		for(int i = 0; i < parent->number_allowed_actions; i++){
 			if(parent->children[i] != NULL){
 				if(parent->children[i]->value == bestValue){					
@@ -407,7 +407,7 @@ Player_AI_UCT::UCTnode* Player_AI_UCT::UCT_Tree_Policy_Best_Child(UCTnode* paren
 		//gmp->Flush();
 
 		//select random move
-		selectedChild_id = (int)floorf( (rand()/(float)(RAND_MAX)) * (float)parent->number_allowed_actions ); //TODO overflow
+		selectedChild_id = (int)floorf( (rand()/(double)(RAND_MAX + 1.0)) * (float)parent->number_allowed_actions ); //TODO overflow
 	}
 	//-- end - debug check
 

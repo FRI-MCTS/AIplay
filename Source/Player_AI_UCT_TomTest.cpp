@@ -478,7 +478,7 @@ Player_AI_UCT_TomTest::UCTnode* Player_AI_UCT_TomTest::UCT_Tree_Policy_Best_Chil
 	selectedChild_id = -1;
 
 	//OPPONENT RANDOM MOVES
-	if(((simulatedGame->current_plys - internalGame->current_plys) % 2 == 1) && ((rand()/(float)(RAND_MAX)) < TOMPLAYER_AI_UCT_TOMTEST_RANDOM_TREE_OPPONENT_THRESHOLD)){ //TODO overflow
+	if(((simulatedGame->current_plys - internalGame->current_plys) % 2 == 1) && ((rand()/(double)(RAND_MAX + 1.0)) < TOMPLAYER_AI_UCT_TOMTEST_RANDOM_TREE_OPPONENT_THRESHOLD)){ //TODO overflow
 		
 		multiple_best = parent->number_allowed_actions;
 	
@@ -931,7 +931,7 @@ Player_AI_UCT_TomTest::UCTnode* Player_AI_UCT_TomTest::UCT_Tree_Policy_Best_Chil
 
 	//if multiple best actions/children, break ties uniformly random
 	if(multiple_best > 1){
-		randAction = (int)floorf( (rand()/(float)(RAND_MAX)) * multiple_best ); //TODO overflow
+		randAction = (int)floorf( (rand()/(double)(RAND_MAX + 1.0)) * multiple_best ); //TODO overflow
 		for(int i = 0; i < parent->number_allowed_actions; i++){
 			if(parent->children[i] != NULL){
 				if(parent->children[i]->value >= bestValue){					
@@ -967,7 +967,7 @@ Player_AI_UCT_TomTest::UCTnode* Player_AI_UCT_TomTest::UCT_Tree_Policy_Best_Chil
 		//gmp->Flush();
 
 		//select random move
-		selectedChild_id = (int)floorf( (rand()/(float)(RAND_MAX)) * (float)parent->number_allowed_actions ); //TODO overflow
+		selectedChild_id = (int)floorf( (rand()/(double)(RAND_MAX + 1.0)) * (float)parent->number_allowed_actions ); //TODO overflow
 	}
 	//-- end - debug check
 
@@ -1003,7 +1003,7 @@ Player_AI_UCT_TomTest::UCTnode* Player_AI_UCT_TomTest::UCT_Expand(UCTnode* paren
 
 	//choose random untried action
 #if((!TOMPLAYER_AI_UCT_TOMTEST_DEBUG_DISABLE_RANDOM)&&(!TOMPLAYER_AI_UCT_TOMTEST_DEBUG_DISABLE_RANDOM_EXPAND))
-	randAction = (int)((rand()/(float)(RAND_MAX))*(parent->number_allowed_actions - parent->number_explored_children)); //TODO overflow
+	randAction = (int)((rand()/(double)(RAND_MAX + 1.0))*(parent->number_allowed_actions - parent->number_explored_children)); //TODO overflow
 #else
 	randAction = 0;
 #endif

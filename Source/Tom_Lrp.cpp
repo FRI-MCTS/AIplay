@@ -120,9 +120,9 @@ int Tom_Lrp::Select_Action(const int check_sum)
 
 	//set random threshold
 	#if(!TOM_LRP_USE_SQUARE_RANDOM)
-		double rand_val = (double)rand()/(RAND_MAX); //TODO overflow
+		double rand_val = (double)rand()/(RAND_MAX + 1.0); //TODO overflow
 	#else
-		double rand_val = rand()*rand()/(RAND_MAX*RAND_MAX+1);
+		double rand_val = rand()*rand()/(RAND_MAX*RAND_MAX+1.0);
 	#endif
 
 	//select action based on probability distribution and random threshold

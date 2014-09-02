@@ -96,7 +96,7 @@ int Game_Engine::Select_Move_Random()
 #if(TOMGAME_ENGINE_DISABLE_RANDOM)
 	r = 0;
 #else
-	r = (int)( (rand()/(float)(RAND_MAX)) * (current_number_moves[current_player]) ); //TODO overflow
+	r = (int)( (rand()/(double)(RAND_MAX + 1.0)) * (current_number_moves[current_player]) ); //TODO overflow
 #endif
 
 	return Select_Move_Unsafe(r);
