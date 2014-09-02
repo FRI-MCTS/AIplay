@@ -95,11 +95,10 @@ void Main_Testing()
 void LRP_improved_v1(double* score_avg, double* score_avg_last10, double** last_param_val, bool force_setting_output, const int set_final_evaluations, double* avg_num_games, double* final_eval_score)
 {
 
-	
 	//konfiguracija tom
 	const int		num_iterations_self	= 10;						//number MCTS simulations per move: evaluated player
 	const int		num_iterations_opponent	= num_iterations_self;	//number MCTS simulation per move: opponent
-	const int		num_games_start		= 10;				//number of games per score output at LRP start
+	const int		num_games_start		= 10000;				//number of games per score output at LRP start
 	const int		num_games_end		= num_games_start;	//number of games per score output at LRP end
 	const double	min_increase_num_games_fact = 1.0;		//minimal increase factor of games per evaluation if confidence below threshold (is ignored if max_increase_num_games_fact <= 1.0)
 	const double	max_increase_num_games_fact	= 1.0;		//maximal increase factor of games per evaluation requested by LRP confidence statistical test (disable by setting <= 1.0)

@@ -834,208 +834,207 @@ double Game_Engine::Evaluate_Players(int num_repeats, int num_games, int output_
 
 	//measure time
 	cpu_time = getCPUTime();
-
 	//execute repeats
-	for(batch_repeat_index = 0; batch_repeat_index < num_repeats; batch_repeat_index++){
-		
-		//reset counter values
-		win_count_local[0] = 0;
-		for(int i = 0; i < number_players; i++){
-			win_count_local[i+1] = 0;
-			score_count_local[i] = 0.0;
-		}
+        for(batch_repeat_index = 0; batch_repeat_index < num_repeats; batch_repeat_index++){
+            
+            //reset counter values
+            win_count_local[0] = 0;
+            for(int i = 0; i < number_players; i++){
+                win_count_local[i+1] = 0;
+                score_count_local[i] = 0.0;
+            }
 
-		//reset players
-		for(int i = 0; i < number_players; i++)
-			if(players[i]->external_reset_enabled)
-				players[i]->Reset();
+            //reset players
+            for(int i = 0; i < number_players; i++)
+                if(players[i]->external_reset_enabled)
+                    players[i]->Reset();
 
-		//execute games
-		for(game_repeat_index = 0; game_repeat_index < num_games; game_repeat_index++){
+            //execute games
+            for(game_repeat_index = 0; game_repeat_index < num_games; game_repeat_index++){
 
-			//reset game state (start new game)
-			Game_New();
+                //reset game state (start new game)
+                Game_New();
 
-			//call new-game procedure for players 
-			for(int i = 0; i < number_players; i++)
-				players[i]->New_Game();
+                //call new-game procedure for players 
+                for(int i = 0; i < number_players; i++)
+                    players[i]->New_Game();
 
-			//play game until end is signaled
-			feedback = (int)game_ended;
-			while(feedback == 0){
+                //play game until end is signaled
+                feedback = (int)game_ended;
+                while(feedback == 0){
 
-				//measure move time
-				cpu_time1 = getCPUTime();
+                    //measure move time
+                    cpu_time1 = getCPUTime();
 
-				//current player selects next move
-				nextMove = players[current_player]->Get_Move();
-				players_move_count[current_player]++;
+                    //current player selects next move
+                    nextMove = players[current_player]->Get_Move();
+                    players_move_count[current_player]++;
 
-				//call before-move procedure for all players
-				for(int i = 0; i < number_players; i++){
-					players[i]->Before_Move(nextMove);
-				}
+                    //call before-move procedure for all players
+                    for(int i = 0; i < number_players; i++){
+                        players[i]->Before_Move(nextMove);
+                    }
 
-				//remember cpu time (cumulative sum)
-				players_move_time_sum[current_player] += ( getCPUTime()-cpu_time1 );
+                    //remember cpu time (cumulative sum)
+                    players_move_time_sum[current_player] += ( getCPUTime()-cpu_time1 );
 
-				//simulate game dynamics with selected move
-#if(TOM_DEBUG)
-				feedback = Play_Move(nextMove);
-#else
-				feedback = Play_Move_Unsafe(nextMove);
-#endif
-				//call after-move procedure for all players
-				cpu_time1 = getCPUTime();
-				for(int i = 0; i < number_players; i++){
-					players[i]->After_Move(nextMove);
-				}
-				players_move_time_sum[current_player] += ( getCPUTime()-cpu_time1 );
-			}
+                    //simulate game dynamics with selected move
+    #if(TOM_DEBUG)
+                    feedback = Play_Move(nextMove);
+    #else
+                    feedback = Play_Move_Unsafe(nextMove);
+    #endif
+                    //call after-move procedure for all players
+                    cpu_time1 = getCPUTime();
+                    for(int i = 0; i < number_players; i++){
+                        players[i]->After_Move(nextMove);
+                    }
+                    players_move_time_sum[current_player] += ( getCPUTime()-cpu_time1 );
+                }
 
-			//calculate score
-			Calculate_Score();
+                //calculate score
+                Calculate_Score();
 
-			//call end-game procedure for players, game must not be resetted before this call
-			for(int i = 0; i < number_players; i++)
-				players[i]->End_Game();
+                //call end-game procedure for players, game must not be resetted before this call
+                for(int i = 0; i < number_players; i++)
+                    players[i]->End_Game();
 
-			// --- update evaluation statistics ---
+                // --- update evaluation statistics ---
 
-			//store score to external data structure
-			if(score_output != NULL){			
-				score_output[0]->Add_Sample(score[0]);
-				score_output[1]->Add_Sample(score[1]);
-			}
+                //store score to external data structure
+                if(score_output != NULL){			
+                    score_output[0]->Add_Sample(score[0]);
+                    score_output[1]->Add_Sample(score[1]);
+                }
 
-			//find winning player
-			if(number_players == 1){	//single player game
-				score_count_total[0] += score[0];
-				score_count_local[0] += score[0];
-			}else{
-				bestOutcome = -DBL_MAX;
-				bestPlayer = 0;
-				multipleWinners = 1;
-				for(int i = 0; i < number_players; i++){
-					if(score[i] > bestOutcome){
-						bestOutcome = score[i];
-						bestPlayer = i;
-						multipleWinners = 1;
-					}else if(score[i] == bestOutcome){
-						multipleWinners++;
-					}
+                //find winning player
+                if(number_players == 1){	//single player game
+                    score_count_total[0] += score[0];
+                    score_count_local[0] += score[0];
+                }else{
+                    bestOutcome = -DBL_MAX;
+                    bestPlayer = 0;
+                    multipleWinners = 1;
+                    for(int i = 0; i < number_players; i++){
+                        if(score[i] > bestOutcome){
+                            bestOutcome = score[i];
+                            bestPlayer = i;
+                            multipleWinners = 1;
+                        }else if(score[i] == bestOutcome){
+                            multipleWinners++;
+                        }
 
-					//save score statistics
-					score_count_total[i] += score[i];
-					score_count_local[i] += score[i];
-				}
+                        //save score statistics
+                        score_count_total[i] += score[i];
+                        score_count_local[i] += score[i];
+                    }
 
-				//single winner
-				if(multipleWinners == 1){
-					win_count_total[bestPlayer+1]++;
-					win_count_local[bestPlayer+1]++;
+                    //single winner
+                    if(multipleWinners == 1){
+                        win_count_total[bestPlayer+1]++;
+                        win_count_local[bestPlayer+1]++;
 
-				//multiple players with equal highest score
-				}else{
-					//game ended in draw (all players have equal score)
-					if(multipleWinners == number_players){
-						win_count_total[0]++;
-						win_count_local[0]++;
+                    //multiple players with equal highest score
+                    }else{
+                        //game ended in draw (all players have equal score)
+                        if(multipleWinners == number_players){
+                            win_count_total[0]++;
+                            win_count_local[0]++;
 
-					//multiple winners
-					}else{
-						for(int i = 0; i < number_players; i++){
-							if(score[i] == bestOutcome){
-								win_count_total[i+1]++;
-								win_count_local[i+1]++;
-							}
-						}
-					}
-				}
-			}
+                        //multiple winners
+                        }else{
+                            for(int i = 0; i < number_players; i++){
+                                if(score[i] == bestOutcome){
+                                    win_count_total[i+1]++;
+                                    win_count_local[i+1]++;
+                                }
+                            }
+                        }
+                    }
+                }
 
-			//output depth 3: after each game
-			if(output_depth >= TOMGAME_OUTPUT_DEPTH3){
-				if(number_players == 1){
-					printf("\nL3 game   | %d\t score %6.5f", game_repeat_index+1, score[0]);
-				}else{
-					printf("\nL3 game   | %d\t draws %4d\t wins", game_repeat_index+1, win_count_local[0]);
-					for(int i = 0; i < number_players; i++)
-						printf(" %4d", win_count_local[i+1]);
-					printf("\t     scores");
-					for(int i = 0; i < number_players; i++)
-						printf(" %6.3f", score[i]);
-				}
-			}else if(output_depth == TOMGAME_OUTPUT_DEPTH1){
-				if(batch_repeat_index*num_games+game_repeat_index >= next_output){
-					printf(".");
-					next_output += output_interval;
-				}
-			}
+                //output depth 3: after each game
+                if(output_depth >= TOMGAME_OUTPUT_DEPTH3){
+                    if(number_players == 1){
+                        printf("\nL3 game   | %d\t score %6.5f", game_repeat_index+1, score[0]);
+                    }else{
+                        printf("\nL3 game   | %d\t draws %4d\t wins", game_repeat_index+1, win_count_local[0]);
+                        for(int i = 0; i < number_players; i++)
+                            printf(" %4d", win_count_local[i+1]);
+                        printf("\t     scores");
+                        for(int i = 0; i < number_players; i++)
+                            printf(" %6.3f", score[i]);
+                    }
+                }else if(output_depth == TOMGAME_OUTPUT_DEPTH1){
+                    if(batch_repeat_index*num_games+game_repeat_index >= next_output){
+                        printf(".");
+                        next_output += output_interval;
+                    }
+                }
 
-			if(score_output != NULL){	
-				if(intermediate_output > 0){
-					if(((score_output[return_score_player_num]->n) % intermediate_output) == 0){
-						score_output[return_score_player_num]->Calc_AvgDev();
-						score_output[return_score_player_num]->Calc_Confidence();
-						gmp->Print("%8d  %6.2f  %6.2f  %6.2f  %9.3f\n",
-							score_output[return_score_player_num]->n,
-							score_output[return_score_player_num]->avg*100,
-							score_output[return_score_player_num]->Calc_Confidence()*100,
-							score_output[return_score_player_num]->dev*100,
-							getCPUTime()-cpu_time
-						);
-					}
-				}
-			}
-		}
-		// END - games
+                if(score_output != NULL){	
+                    if(intermediate_output > 0){
+                        if(((score_output[return_score_player_num]->n) % intermediate_output) == 0){
+                            score_output[return_score_player_num]->Calc_AvgDev();
+                            score_output[return_score_player_num]->Calc_Confidence();
+                            gmp->Print("%8d  %6.2f  %6.2f  %6.2f  %9.3f\n",
+                                score_output[return_score_player_num]->n,
+                                score_output[return_score_player_num]->avg*100,
+                                score_output[return_score_player_num]->Calc_Confidence()*100,
+                                score_output[return_score_player_num]->dev*100,
+                                getCPUTime()-cpu_time
+                            );
+                        }
+                    }
+                }
+            }
+            // END - games
+            //output depth 2: after series of games
+            if(output_depth >= TOMGAME_OUTPUT_DEPTH2){
+                if(number_players == 1){
+                    printf("\nL2 REPEAT | %d\t average score %6.5f", batch_repeat_index+1, score_count_local[0] / num_games);
+                }else{
+                    printf("\nL2 REPEAT | %d\t draws %4d\t wins", batch_repeat_index+1, win_count_local[0]);
+                    for(int i = 0; i < number_players; i++)
+                        printf(" %4d", win_count_local[i+1]);
+                    printf("\t sum-scores");
+                    for(int i = 0; i < number_players; i++)
+                        printf(" %6.3f", score_count_local[i]);
+                    printf("\t relative");
+                    for(int i = 0; i < number_players+1; i++)
+                        printf(" %5.3f", (float)win_count_local[i]/num_games);
+                }
+            }
 
-		//output depth 2: after series of games
-		if(output_depth >= TOMGAME_OUTPUT_DEPTH2){
-			if(number_players == 1){
-				printf("\nL2 REPEAT | %d\t average score %6.5f", batch_repeat_index+1, score_count_local[0] / num_games);
-			}else{
-				printf("\nL2 REPEAT | %d\t draws %4d\t wins", batch_repeat_index+1, win_count_local[0]);
-				for(int i = 0; i < number_players; i++)
-					printf(" %4d", win_count_local[i+1]);
-				printf("\t sum-scores");
-				for(int i = 0; i < number_players; i++)
-					printf(" %6.3f", score_count_local[i]);
-				printf("\t relative");
-				for(int i = 0; i < number_players+1; i++)
-					printf(" %5.3f", (float)win_count_local[i]/num_games);
-			}
-		}
+    #ifdef ENABLE_MPI
+            if(!mpi_rank) {
+                int *tmp_count = new int[number_players+1];
+                MPI_Status status;
 
-#ifdef ENABLE_MPI
-        if(!mpi_rank) {
-            int *tmp_count = new int[number_players+1];
-            MPI_Status status;
+                for (int i = 1; i < mpi_num_proc; i++) {
+                    MPI_Recv(tmp_count, number_players+1, MPI_INT, i, 0,
+                             MPI_COMM_WORLD, &status);
 
-            for (int i = 1; i < mpi_num_proc; i++) {
-                MPI_Recv(tmp_count, number_players+1, MPI_INT, i, 0,
-                         MPI_COMM_WORLD, &status);
-
-                printf ("##+ I received score!\n");
-                for (int k = 0; k < number_players + 1; k++)
-                    win_count_total[k] += tmp_count[k];
+                    printf ("##+ I received score! GRI: %d \n", game_repeat_index);
+                    for (int k = 0; k < number_players + 1; k++)
+                        win_count_total[k] += tmp_count[k];
+                }
+            }
+            else {
+                MPI_Send(win_count_total, number_players+1, MPI_INT,
+                    0, 0, MPI_COMM_WORLD);
+                printf ("##- I sent score! GRT: %d RANK: %d\n", game_repeat_index, mpi_rank);
+            }
+            MPI_Barrier (MPI_COMM_WORLD);
+    #endif
+            //calculate avgerage and deviation in external score storing structure
+            if(score_output != NULL){	
+                score_output[0]->Calc_AvgDev();
+                score_output[0]->Calc_Confidence();
+                score_output[1]->Calc_AvgDev();
+                score_output[1]->Calc_Confidence();
             }
         }
-        else {
-            MPI_Send(win_count_total, number_players+1, MPI_INT,
-                0, 0, MPI_COMM_WORLD);
-            printf ("##- I sent score! RANK: %d\n", mpi_rank);
-        }
-#endif
-		//calculate avgerage and deviation in external score storing structure
-		if(score_output != NULL){	
-			score_output[0]->Calc_AvgDev();
-			score_output[0]->Calc_Confidence();
-			score_output[1]->Calc_AvgDev();
-			score_output[1]->Calc_Confidence();
-		}
-	}
 	// END - repeats
 
 	//output depth 0: after all repeats, final results, players outputs
