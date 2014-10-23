@@ -974,13 +974,6 @@ void LRP_improved_v1(double* score_avg, double* score_avg_last10, double** last_
 	delete(optimizingPlayer);
 	delete(opponent);
 	delete(game);
-
-#ifdef ENABLE_MPI
-    MPI_Finalize();
-
-    if (mpi_rank)
-        exit(0);
-#endif
 }
 
 void LRP_test_wrapperMultiPar()
@@ -3607,24 +3600,32 @@ int main(int argc, char* argv[])
 	//------------------------------------------------
 	//MAIN EXIT PROCEDURE
 
-	printf("\n\n");
-	//gmp->Close_Output_Files();
-	delete(gmp);
+#ifdef ENABLE_MPI
+    if (!mpi_rank) {
+#endif
+        printf("\n\n");
+        //gmp->Close_Output_Files();
+        delete(gmp);
 
 #if(TOM_OUTPUT_TO_MATLAB)
-	fclose(stdout);
-	tmpStream = freopen("CONOUT$", "w", stdout);	//redirect standard output back to console
-	//call Matlab script for results visualization
-	system((extern_call_command + " " + output_data_filename + " " + output_conf_filename + " " + program_start_time_output_str).c_str());	
+        fclose(stdout);
+        tmpStream = freopen("CONOUT$", "w", stdout);	//redirect standard output back to console
+        //call Matlab script for results visualization
+        system((extern_call_command + " " + output_data_filename + " " + output_conf_filename + " " + program_start_time_output_str).c_str());	
 #else
-	if((argc > 1)&&(argv[1][0] == '1')){
-		//do not prompt for key-press
-	}else{
-		fflush(stdout);
-		cout << endl << "Press any key to exit.";
-		cin.get();
-	}
+        if((argc > 1)&&(argv[1][0] == '1')){
+            //do not prompt for key-press
+        }else{
+            fflush(stdout);
+            cout << endl << "Press any key to exit.";
+            cin.get();
+        }
 
+#endif
+
+#ifdef ENABLE_MPI
+    }
+    MPI_Finalize();
 #endif
 
 }

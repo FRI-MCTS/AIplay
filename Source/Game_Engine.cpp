@@ -806,6 +806,9 @@ double Game_Engine::Evaluate_Players(int num_repeats, int num_games, int output_
 	if(players == NULL)
 		return -1;
 
+#ifdef ENABLE_MPI
+    if (!get_mpi_rank()) {
+#endif
 	//output depth 1
 	if(output_depth >= TOMGAME_OUTPUT_DEPTH1){		
 		printf("\nEval on game %s [%d repeats %d games]", game_name.c_str(), num_repeats, num_games);
@@ -817,6 +820,9 @@ double Game_Engine::Evaluate_Players(int num_repeats, int num_games, int output_
 			next_output = output_interval;
 		}
 	}
+#ifdef ENABLE_MPI
+    }
+#endif
 
 	//allocate counters
 	int* win_count_total = new int[number_players+1];	//total counter for: draws | player1 | player2 | ...
@@ -956,6 +962,9 @@ double Game_Engine::Evaluate_Players(int num_repeats, int num_games, int output_
                     }
                 }
 
+#ifdef ENABLE_MPI
+                if (!get_mpi_rank()) {
+#endif
                 //output depth 3: after each game
                 if(output_depth >= TOMGAME_OUTPUT_DEPTH3){
                     if(number_players == 1){
@@ -990,7 +999,14 @@ double Game_Engine::Evaluate_Players(int num_repeats, int num_games, int output_
                         }
                     }
                 }
+#ifdef ENABLE_MPI
+                }
+#endif
             }
+
+#ifdef ENABLE_MPI
+            if (!get_mpi_rank()) {
+#endif
             // END - games
             //output depth 2: after series of games
             if(output_depth >= TOMGAME_OUTPUT_DEPTH2){
@@ -1008,8 +1024,11 @@ double Game_Engine::Evaluate_Players(int num_repeats, int num_games, int output_
                         printf(" %5.3f", (float)win_count_local[i]/num_games);
                 }
             }
+#ifdef ENABLE_MPI
+            }
+#endif
 
-    #ifdef ENABLE_MPI
+#ifdef ENABLE_MPI
             for (int i = 0; i < number_players; i++)
             printf("RANK %d[%d], score %lf\n", get_mpi_rank(), i, score_count_local[i]);
 
@@ -1026,7 +1045,7 @@ double Game_Engine::Evaluate_Players(int num_repeats, int num_games, int output_
                     printf ("I %d, LOCAL %lf, TOTAL %lf\n",
                             i, score_count_local[i], score_count_total[i]);
             }
-    #endif
+#endif
             //calculate avgerage and deviation in external score storing structure
             if(score_output != NULL){	
                 score_output[0]->Calc_AvgDev();
@@ -1037,6 +1056,9 @@ double Game_Engine::Evaluate_Players(int num_repeats, int num_games, int output_
         }
 	// END - repeats
 
+#ifdef ENABLE_MPI
+    if (!get_mpi_rank) {
+#endif
 	//output depth 0: after all repeats, final results, players outputs
 	if(output_depth >= TOMGAME_OUTPUT_DEPTH0){
 		cpu_time = getCPUTime()-cpu_time;
@@ -1071,6 +1093,10 @@ double Game_Engine::Evaluate_Players(int num_repeats, int num_games, int output_
 			gmp->Print("\nTIME P%d:   %6.1lf ms/game   %6.2lf ms/move  (games %d moves %d totalTime %lf s)",i,players_move_time_sum[i] / (double)(num_repeats*num_games) * 1000.0, players_move_time_sum[i] / (double)(num_repeats*num_games*players_move_count[i]) * 1000.0 , num_repeats*num_games, players_move_count[i],players_move_time_sum[i]);
 		gmp->Print("\n\n");
 	}
+
+#ifdef ENABLE_MPI
+    }
+#endif
 
 	//save return value
 	double tmpReturn = score_count_total[return_score_player_num];
