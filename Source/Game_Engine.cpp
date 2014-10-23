@@ -798,6 +798,9 @@ double Game_Engine::Evaluate_Players(int num_repeats, int num_games, int output_
 	double cpu_time;
 	double cpu_time1;
 
+#ifdef ENABLE_MPI
+    num_games /= get_mpi_num_proc();
+#endif
 	//check if players are correctly linked to game, otherwise exit procedure
 	players = Validate_Players(players);
 	if(players == NULL)
@@ -1007,25 +1010,22 @@ double Game_Engine::Evaluate_Players(int num_repeats, int num_games, int output_
             }
 
     #ifdef ENABLE_MPI
-            if(!mpi_rank) {
-                int *tmp_count = new int[number_players+1];
-                MPI_Status status;
+            for (int i = 0; i < number_players; i++)
+            printf("RANK %d[%d], score %lf\n", get_mpi_rank(), i, score_count_local[i]);
 
-                for (int i = 1; i < mpi_num_proc; i++) {
-                    MPI_Recv(tmp_count, number_players+1, MPI_INT, i, 0,
-                             MPI_COMM_WORLD, &status);
+            MPI_Reduce (score_count_local, score_count_total, number_players,
+                        MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 
-                    printf ("##+ I received score! GRI: %d \n", game_repeat_index);
-                    for (int k = 0; k < number_players + 1; k++)
-                        win_count_total[k] += tmp_count[k];
-                }
-            }
-            else {
-                MPI_Send(win_count_total, number_players+1, MPI_INT,
-                    0, 0, MPI_COMM_WORLD);
-                printf ("##- I sent score! GRT: %d RANK: %d\n", game_repeat_index, mpi_rank);
-            }
             MPI_Barrier (MPI_COMM_WORLD);
+
+            for (int i = 0; i < number_players; i++)
+                score_count_total[i] /= (double) get_mpi_num_proc();
+
+            if (!get_mpi_rank()) {
+                for (int i = 0; i < number_players; i++)
+                    printf ("I %d, LOCAL %lf, TOTAL %lf\n",
+                            i, score_count_local[i], score_count_total[i]);
+            }
     #endif
             //calculate avgerage and deviation in external score storing structure
             if(score_output != NULL){	

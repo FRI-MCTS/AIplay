@@ -81,8 +81,8 @@ void Main_Testing()
 	//TicTacToe_Implementation_Test1();
 	//Go_Testing();
 
-	//Fixed_Play_Testing();				//evaluate fixed settings (no LRP)
-    LRP_improved_v1();				//single LRP run
+    Fixed_Play_Testing();				//evaluate fixed settings (no LRP)
+    //LRP_improved_v1();				//single LRP run
 	//LRP_test_wrapperMultiPar();		//multiple LRP repeats
 
 	//Tom_Paper1_tests();
@@ -98,7 +98,7 @@ void LRP_improved_v1(double* score_avg, double* score_avg_last10, double** last_
 	//konfiguracija tom
 	const int		num_iterations_self	= 10;						//number MCTS simulations per move: evaluated player
 	const int		num_iterations_opponent	= num_iterations_self;	//number MCTS simulation per move: opponent
-	const int		num_games_start		= 10000;				//number of games per score output at LRP start
+	const int		num_games_start		= 100;				//number of games per score output at LRP start
 	const int		num_games_end		= num_games_start;	//number of games per score output at LRP end
 	const double	min_increase_num_games_fact = 1.0;		//minimal increase factor of games per evaluation if confidence below threshold (is ignored if max_increase_num_games_fact <= 1.0)
 	const double	max_increase_num_games_fact	= 1.0;		//maximal increase factor of games per evaluation requested by LRP confidence statistical test (disable by setting <= 1.0)
@@ -106,7 +106,7 @@ void LRP_improved_v1(double* score_avg, double* score_avg_last10, double** last_
 	const double	start_RAVE_V_self	= 35.0;		//initial RAVE parameter V: evaluated player
 	const double	fixed_CP_opponent	= 0.2;		//initial Cp: opponent
 	const double	funcApp_init_weights = 0.0;		//initial function approximator weights (to be optimized by LRP)
-	const int		num_LRP_iterations	= 2000;		//number of LRP iterations (must be > 1 otherwise invalid values appear)
+	const int		num_LRP_iterations	= 200;		//number of LRP iterations (must be > 1 otherwise invalid values appear)
 	const double	dw_start			= 0.2000;	//LRP delta weight (change in Cp value): at start
 	const double	dw_limit			= 0.0010;	//LRP delta weight (change in Cp value): at end
 	const double	lrp_ab_max			= 0.75;		//LRP learning parameter alpha: maximal value
@@ -171,8 +171,8 @@ void LRP_improved_v1(double* score_avg, double* score_avg_last10, double** last_
 	const bool show_full_output = true; //runtime setting
 
 	//Game_Engine* game = new Game_ConnectFour();
-	//Game_Engine* game = new Game_Gomoku();
-	Game_Engine* game = new Game_TicTacToe();
+    Game_Engine* game = new Game_Gomoku();
+	//Game_Engine* game = new Game_TicTacToe();
 
 	Player_AI_UCT_TomTest* optimizingPlayer = new Player_AI_UCT_TomTest();
 	Player_AI_UCT* opponent = new Player_AI_UCT(game);
@@ -556,19 +556,19 @@ void LRP_improved_v1(double* score_avg, double* score_avg_last10, double** last_
 	//optimizingPlayer->QVALUE_param_initVal = 0.5;
 
 	//SARSA+AMAF
-	optimizingPlayer->UCT_param_C = -2.0;
-	optimizingPlayer->AMAF_param_alpha = 0.8997;
+	//optimizingPlayer->UCT_param_C = -2.0;
+	//optimizingPlayer->AMAF_param_alpha = 0.8997;
 	//optimizingPlayer->AMAF_param_alpha = 1.0;
-	optimizingPlayer->QVALUE_param_scoreWeight = 2.0;
-	optimizingPlayer->QVALUE_param_alpha = 0.3124;
-	optimizingPlayer->QVALUE_param_gamma = 1.0004;
-	optimizingPlayer->QVALUE_param_lambda = 0.6664;
-	optimizingPlayer->QVALUE_param_lambda_playOut = 0.9129;
-	optimizingPlayer->QVALUE_param_leaf_node_val0 = 0;
-	optimizingPlayer->QVALUE_param_leaf_node_val1 = 1;
-	optimizingPlayer->QVALUE_param_leaf_node_val2 = 0;
-	optimizingPlayer->QVALUE_param_leaf_node_val3 = 1;
-	optimizingPlayer->QVALUE_param_initVal = 0.5;
+	//optimizingPlayer->QVALUE_param_scoreWeight = 2.0;
+	//optimizingPlayer->QVALUE_param_alpha = 0.3124;
+	//optimizingPlayer->QVALUE_param_gamma = 1.0004;
+	//optimizingPlayer->QVALUE_param_lambda = 0.6664;
+	//optimizingPlayer->QVALUE_param_lambda_playOut = 0.9129;
+	//optimizingPlayer->QVALUE_param_leaf_node_val0 = 0;
+	//optimizingPlayer->QVALUE_param_leaf_node_val1 = 1;
+	//optimizingPlayer->QVALUE_param_leaf_node_val2 = 0;
+	//optimizingPlayer->QVALUE_param_leaf_node_val3 = 1;
+	//optimizingPlayer->QVALUE_param_initVal = 0.5;
 	//funcApp1->parameter_weights[0] = 2.0;
 	//funcApp1->parameter_weights[1] = -0.4;
 	//funcApp1->parameter_weights[2] = -2.0;
@@ -1112,7 +1112,7 @@ void Fixed_Play_Testing(double input_param1, double input_param2)
 
 	//--- SET BENCHMARK PARAMETERS HERE ---//
 
-	int repeats = 10000;
+	int repeats = 600;
 		//1000000, 95% confidence that true value deviates less by 0.1%
 		//200000,  95% confidence that true value deviates less by 0.3%
 		//20000,   95% confidence that true value deviates less by 1%
@@ -1135,7 +1135,7 @@ void Fixed_Play_Testing(double input_param1, double input_param2)
 	//--- SET PLAYERS PARAMETERS HERE ---//
 
 	//opponent->UCT_param_IterNum = (int)input_param1;
-	opponent->UCT_param_IterNum = 5000;
+	opponent->UCT_param_IterNum = 1000;
 	opponent->UCT_param_C = 0.2;//0.5/sqrt(2);
 	//opponent->UCT_param_C = -0.08;
 	//opponent->RAVE_param_V = 37;
@@ -3505,7 +3505,11 @@ int main(int argc, char* argv[])
     MPI_Init (&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &mpi_num_proc);
-    fprintf (stderr, "I'm process number %d\n", mpi_rank);
+
+    set_mpi_vars (mpi_rank, mpi_num_proc);
+
+    //fprintf (stderr, "I'm process number %d\n", mpi_rank);
+    //printf ("MPIRANK %d + MPIPROC %d\n", get_mpi_rank(), get_mpi_num_proc());
 #endif
 
     //save program start time to global variable
