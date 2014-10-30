@@ -799,7 +799,13 @@ double Game_Engine::Evaluate_Players(int num_repeats, int num_games, int output_
 	double cpu_time1;
 
 #ifdef ENABLE_MPI
-    num_games /= get_mpi_num_proc();
+    if (!get_mpi_rank()) {
+        int n = num_games / get_mpi_num_proc();
+        MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+        // main proc takes surplus of games
+        num_games = n + num_games % get_mpi_num_proc();
+    }
 #endif
 	//check if players are correctly linked to game, otherwise exit procedure
 	players = Validate_Players(players);
@@ -1030,7 +1036,7 @@ double Game_Engine::Evaluate_Players(int num_repeats, int num_games, int output_
 
 #ifdef ENABLE_MPI
             for (int i = 0; i < number_players; i++)
-            printf("RANK %d[%d], score %lf\n", get_mpi_rank(), i, score_count_local[i]);
+            //printf("RANK %d[%d], score %lf\n", get_mpi_rank(), i, score_count_local[i]);
 
             MPI_Reduce (score_count_local, score_count_total, number_players,
                         MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
@@ -1040,11 +1046,11 @@ double Game_Engine::Evaluate_Players(int num_repeats, int num_games, int output_
             for (int i = 0; i < number_players; i++)
                 score_count_total[i] /= (double) get_mpi_num_proc();
 
-            if (!get_mpi_rank()) {
+            //if (!get_mpi_rank()) {
                 for (int i = 0; i < number_players; i++)
-                    printf ("I %d, LOCAL %lf, TOTAL %lf\n",
-                            i, score_count_local[i], score_count_total[i]);
-            }
+                    printf ("I %d rank %d, LOCAL %lf, TOTAL %lf\n",
+                            i, get_mpi_rank(), score_count_local[i], score_count_total[i]);
+            //}
 #endif
             //calculate avgerage and deviation in external score storing structure
             if(score_output != NULL){	

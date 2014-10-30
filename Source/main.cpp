@@ -1,7 +1,6 @@
 #include <math.h>
 //include header
 #include "main.hpp"
-#include "MPI.hpp"
 
 #ifdef ENABLE_MPI
 #include <mpi.h>
@@ -81,8 +80,8 @@ void Main_Testing()
 	//TicTacToe_Implementation_Test1();
 	//Go_Testing();
 
-    Fixed_Play_Testing();				//evaluate fixed settings (no LRP)
-    //LRP_improved_v1();				//single LRP run
+    //Fixed_Play_Testing();				//evaluate fixed settings (no LRP)
+    LRP_improved_v1();				//single LRP run
 	//LRP_test_wrapperMultiPar();		//multiple LRP repeats
 
 	//Tom_Paper1_tests();
@@ -98,7 +97,7 @@ void LRP_improved_v1(double* score_avg, double* score_avg_last10, double** last_
 	//konfiguracija tom
 	const int		num_iterations_self	= 10;						//number MCTS simulations per move: evaluated player
 	const int		num_iterations_opponent	= num_iterations_self;	//number MCTS simulation per move: opponent
-	const int		num_games_start		= 100;				//number of games per score output at LRP start
+	const int		num_games_start		= 99;				//number of games per score output at LRP start
 	const int		num_games_end		= num_games_start;	//number of games per score output at LRP end
 	const double	min_increase_num_games_fact = 1.0;		//minimal increase factor of games per evaluation if confidence below threshold (is ignored if max_increase_num_games_fact <= 1.0)
 	const double	max_increase_num_games_fact	= 1.0;		//maximal increase factor of games per evaluation requested by LRP confidence statistical test (disable by setting <= 1.0)
@@ -669,6 +668,32 @@ void LRP_improved_v1(double* score_avg, double* score_avg_last10, double** last_
 	double lrp_ab = 0.0;
 	int num_games = num_games_start;
 
+#ifdef ENABLE_MPI
+    if (get_mpi_rank()) {
+        while (1) {
+            int n;
+            struct s_update_weights weights;
+            printf("cakam numgames");
+            MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+            if (n > 0) {
+                //printf("RANK %d || NUM of games %d\n", get_mpi_rank(), n);
+                game->Evaluate_Players(1, n,-1, players, false, eval_player_position);
+            }
+            else {
+                cleanup_mpi();
+                exit(0);
+            }
+
+            printf("cakaam weights\n");
+            MPI_Bcast(&weights, 1, mpi_update_weights_type, 0, MPI_COMM_WORLD);
+		    funcApp1->Action_Update_Weights(weights.selected_action, weights.dw);
+
+            //printf("RANK %d || ac: %d dw: %lf\n", get_mpi_rank(), weights.selected_action, weights.dw);
+
+        }
+    }
+#endif
 	//evaluate starting setting
 	score = game->Evaluate_Players(1,num_games,-1,players,false,eval_player_position) / num_games;
 
@@ -742,6 +767,14 @@ void LRP_improved_v1(double* score_avg, double* score_avg_last10, double** last_
 		funcApp1->Action_Update_Weights(selected_action, dw);
 		//optimizingPlayer->UCT_param_C = funcApp1->parameter_weights[0];
 
+#ifdef ENABLE_MPI
+        struct s_update_weights s_tmp;
+        s_tmp.selected_action = selected_action;
+        s_tmp.dw = dw;
+        
+        //printf("Posiljam %d %lf\n", selected_action, dw);
+        MPI_Bcast(&s_tmp, 1, mpi_update_weights_type, 0, MPI_COMM_WORLD);
+#endif
 		//evaluate new setting and save scores
 		previous_score = score;						//save previous score
 		score = game->Evaluate_Players(1,num_games,-1,players,false,eval_player_position) / num_games;
@@ -968,6 +1001,14 @@ void LRP_improved_v1(double* score_avg, double* score_avg_last10, double** last_
 
 	gmp->Flush();
 
+#ifdef ENABLE_MPI
+    struct s_update_weights s_tmp;
+    MPI_Bcast(&s_tmp, 1, mpi_update_weights_type, 0, MPI_COMM_WORLD);
+
+    int n = -1;
+    MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
+#endif
+
 	//free memory
 	delete(score_history);
 	delete(Lrp);
@@ -1048,10 +1089,11 @@ void LRP_test_wrapperMultiPar()
 	gmp->Print("conf   %6.1f %6.2f %6.2f %6.2f  ", num_games_per_step->conf, avg_score->conf*100, avg_score10->conf*100, final_score->conf*100); for(int p = 0; p < num_LRP_params; p++) gmp->Print("%7.4f  ", last_param[p]->conf); gmp->Print("\n");
 	gmp->Print("median %6.1f %6.2f %6.2f %6.2f  ", num_games_per_step->median, avg_score->median*100, avg_score10->median*100, final_score->median*100); for(int p = 0; p < num_LRP_params; p++) gmp->Print("%7.4f  ", last_param[p]->median); gmp->Print("\n");
 
+
 	cpu_time = getCPUTime()-cpu_time;
 	gmp->Print("\n\nTotalRuntime: %9.3f s\n", cpu_time);
 	gmp->Flush();
-	
+
 	delete[] last_param_val;
 	delete(avg_score);
 	delete(avg_score10);
@@ -3500,6 +3542,7 @@ int main(int argc, char* argv[])
     MPI_Comm_size(MPI_COMM_WORLD, &mpi_num_proc);
 
     set_mpi_vars (mpi_rank, mpi_num_proc);
+    init_update_weights_type ();
 
     //fprintf (stderr, "I'm process number %d\n", mpi_rank);
     //printf ("MPIRANK %d + MPIPROC %d\n", get_mpi_rank(), get_mpi_num_proc());
@@ -3625,7 +3668,7 @@ int main(int argc, char* argv[])
 
 #ifdef ENABLE_MPI
     }
-    MPI_Finalize();
+    cleanup_mpi();
 #endif
 
 }
