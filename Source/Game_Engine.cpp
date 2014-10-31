@@ -800,11 +800,14 @@ double Game_Engine::Evaluate_Players(int num_repeats, int num_games, int output_
 
 #ifdef ENABLE_MPI
     if (!get_mpi_rank()) {
-        int n = num_games / get_mpi_num_proc();
-        MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
+        struct s_update_params s_tmp;
+        s_tmp.command = BCAST_NUM_GAMES;
+        s_tmp.selected_action = num_games / get_mpi_num_proc();
+
+        MPI_Bcast(&s_tmp, 1, mpi_update_params_type, 0, MPI_COMM_WORLD);
 
         // main proc takes surplus of games
-        num_games = n + num_games % get_mpi_num_proc();
+        num_games = s_tmp.selected_action + num_games % get_mpi_num_proc();
     }
 #endif
 	//check if players are correctly linked to game, otherwise exit procedure

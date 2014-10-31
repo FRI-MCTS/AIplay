@@ -97,7 +97,7 @@ void LRP_improved_v1(double* score_avg, double* score_avg_last10, double** last_
 	//konfiguracija tom
 	const int		num_iterations_self	= 10;						//number MCTS simulations per move: evaluated player
 	const int		num_iterations_opponent	= num_iterations_self;	//number MCTS simulation per move: opponent
-	const int		num_games_start		= 99;				//number of games per score output at LRP start
+	const int		num_games_start		= 100;				//number of games per score output at LRP start
 	const int		num_games_end		= num_games_start;	//number of games per score output at LRP end
 	const double	min_increase_num_games_fact = 1.0;		//minimal increase factor of games per evaluation if confidence below threshold (is ignored if max_increase_num_games_fact <= 1.0)
 	const double	max_increase_num_games_fact	= 1.0;		//maximal increase factor of games per evaluation requested by LRP confidence statistical test (disable by setting <= 1.0)
@@ -671,26 +671,26 @@ void LRP_improved_v1(double* score_avg, double* score_avg_last10, double** last_
 #ifdef ENABLE_MPI
     if (get_mpi_rank()) {
         while (1) {
-            int n;
-            struct s_update_weights weights;
-            printf("cakam numgames");
-            MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
+            struct s_update_params params;
 
-            if (n > 0) {
+            MPI_Bcast(&params, 1, mpi_update_params_type, 0, MPI_COMM_WORLD);
+            if (params.command == BCAST_NUM_GAMES) {
+                int n = params.selected_action;
                 //printf("RANK %d || NUM of games %d\n", get_mpi_rank(), n);
                 game->Evaluate_Players(1, n,-1, players, false, eval_player_position);
             }
-            else {
+            else if (params.command == BCAST_WEIGHTS) {
+                //printf("RANK %d || ac: %d dw: %lf\n",
+                        //get_mpi_rank(), params.selected_action, params.dw);
+                funcApp1->Action_Update_Weights(params.selected_action, params.dw);
+
+            }
+            else if (params.command == BCAST_EXIT) {
                 cleanup_mpi();
                 exit(0);
             }
-
-            printf("cakaam weights\n");
-            MPI_Bcast(&weights, 1, mpi_update_weights_type, 0, MPI_COMM_WORLD);
-		    funcApp1->Action_Update_Weights(weights.selected_action, weights.dw);
-
-            //printf("RANK %d || ac: %d dw: %lf\n", get_mpi_rank(), weights.selected_action, weights.dw);
-
+            else
+                fprintf (stderr, "Invalid command for MPI_Bcast\n");
         }
     }
 #endif
@@ -768,12 +768,13 @@ void LRP_improved_v1(double* score_avg, double* score_avg_last10, double** last_
 		//optimizingPlayer->UCT_param_C = funcApp1->parameter_weights[0];
 
 #ifdef ENABLE_MPI
-        struct s_update_weights s_tmp;
+        struct s_update_params s_tmp;
+        s_tmp.command = BCAST_WEIGHTS;
         s_tmp.selected_action = selected_action;
         s_tmp.dw = dw;
-        
+
         //printf("Posiljam %d %lf\n", selected_action, dw);
-        MPI_Bcast(&s_tmp, 1, mpi_update_weights_type, 0, MPI_COMM_WORLD);
+        MPI_Bcast(&s_tmp, 1, mpi_update_params_type, 0, MPI_COMM_WORLD);
 #endif
 		//evaluate new setting and save scores
 		previous_score = score;						//save previous score
@@ -1002,11 +1003,9 @@ void LRP_improved_v1(double* score_avg, double* score_avg_last10, double** last_
 	gmp->Flush();
 
 #ifdef ENABLE_MPI
-    struct s_update_weights s_tmp;
-    MPI_Bcast(&s_tmp, 1, mpi_update_weights_type, 0, MPI_COMM_WORLD);
-
-    int n = -1;
-    MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    struct s_update_params s_tmp;
+    s_tmp.command = BCAST_EXIT;
+    MPI_Bcast(&s_tmp, 1, mpi_update_params_type, 0, MPI_COMM_WORLD);
 #endif
 
 	//free memory
@@ -3542,7 +3541,7 @@ int main(int argc, char* argv[])
     MPI_Comm_size(MPI_COMM_WORLD, &mpi_num_proc);
 
     set_mpi_vars (mpi_rank, mpi_num_proc);
-    init_update_weights_type ();
+    init_update_params_type ();
 
     //fprintf (stderr, "I'm process number %d\n", mpi_rank);
     //printf ("MPIRANK %d + MPIPROC %d\n", get_mpi_rank(), get_mpi_num_proc());
