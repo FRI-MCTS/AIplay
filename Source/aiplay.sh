@@ -5,16 +5,17 @@
 #echo "NSLOTS je '$NSLOTS'"
 
 PROGRAM="aiplay"
-ARGUMENTI_ZAGON="$@"                   #parametri, dobljeni iz xrsl datoteke
+ARGUMENTI_ZAGON="$@"
 
 #1. Compile
 make
 
 echo "MPIRUN:""$MPIRUN"
 echo "MPIARGS:""$MPIARGS"
+echo "ARG_ZAGON:""$ARGUMENTI_ZAGON"
 
 #2. Zagon programa
-$MPIRUN $MPIARGS ${PWD}/$PROGRAM $ARGUMENTI_ZAGON
+$MPIRUN $MPIARGS $PROGRAM $ARGUMENTI_ZAGON
 
 #3. Uspesen?
 exitcode=$?

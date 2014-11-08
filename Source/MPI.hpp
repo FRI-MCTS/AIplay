@@ -15,6 +15,7 @@
 const int BCAST_EXIT = -1;      // call MPI_Finalize()
 const int BCAST_NUM_GAMES = 0;  // send num games
 const int BCAST_WEIGHTS = 1;    // send weights for Action_Update_Weights()
+const int BCAST_PARAM_VALUES = 2;
 
 // new mpi datatype; command defines action and 2nd and 3rd parameter, refer to
 // the table below

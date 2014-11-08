@@ -1,5 +1,6 @@
 #include <time.h>
 #include "Support_GetCPUTime.hpp"
+#include "MPI.hpp"
 
 /**
  * Returns the amount of CPU time used by the current process,
@@ -7,6 +8,10 @@
  */
 double getCPUTime( )
 {
+#ifdef ENABLE_MPI
+    return MPI_Wtime();
+#endif
+
 #if defined(_WIN32)
 	/* Windows -------------------------------------------------- */
 	FILETIME createTime;

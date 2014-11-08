@@ -45,6 +45,7 @@ void Tom_Paper1_tests();
 
 #ifdef ENABLE_MPI
 int mpi_rank, mpi_num_proc;
+double total_time;
 #endif
 
 
@@ -80,8 +81,18 @@ void Main_Testing()
 	//TicTacToe_Implementation_Test1();
 	//Go_Testing();
 
-    //Fixed_Play_Testing();				//evaluate fixed settings (no LRP)
-    LRP_improved_v1();				//single LRP run
+    int num_repeats = 10;
+    double whole_time = 0;
+    for (int i = 0; i < 100; i++) {
+        if (!get_mpi_rank())
+        printf("REPEAT %d -----------------\n", i);
+        Fixed_Play_Testing();				//evaluate fixed settings (no LRP)
+        whole_time += total_time;
+        printf ("Total time %lf\n", total_time);
+    }
+
+    printf ("Average time through %d repeats: %lf\n", num_repeats, whole_time/num_repeats);
+    //LRP_improved_v1();				//single LRP run
 	//LRP_test_wrapperMultiPar();		//multiple LRP repeats
 
 	//Tom_Paper1_tests();
@@ -685,6 +696,14 @@ void LRP_improved_v1(double* score_avg, double* score_avg_last10, double** last_
                 funcApp1->Action_Update_Weights(params.selected_action, params.dw);
 
             }
+            else if (params.command == BCAST_PARAM_VALUES) {
+                MPI_Bcast(&Lrp->evaluations_history[index_best_setting].param_values,
+                          funcApp1->num_params, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+
+                printf ("receiviing params\n");
+				for(int p = 0; p < funcApp1->num_params; p++)
+					funcApp1->parameter_weights[p] = Lrp->evaluations_history[index_best_setting].param_values[p];
+            }
             else if (params.command == BCAST_EXIT) {
                 cleanup_mpi();
                 exit(0);
@@ -896,6 +915,7 @@ void LRP_improved_v1(double* score_avg, double* score_avg_last10, double** last_
 			//gmp->Print("\n"); Lrp->Debug_Display_Evaluations_History();
 			//gmp->Print("\t %d %f %d %f\t",index_best_setting, best_sample_score, (Lrp->evaluations_history_num_samples)-1, last_sample_score);
 
+            printf ("asdasd");
 			if( current_score_ratio >= restart_threshold ){
 
 				if(!silence_output){
@@ -907,6 +927,16 @@ void LRP_improved_v1(double* score_avg, double* score_avg_last10, double** last_
 				//reset LRP probabilites
 				Lrp->State_Reset();
 
+#ifdef ENABLE_MPI
+                struct s_update_params s_tmp;
+                s_tmp.command = BCAST_PARAM_VALUES;
+
+                printf("Posiljam  params %d %lf\n", selected_action, dw);
+                MPI_Bcast(&s_tmp, 1, mpi_update_params_type, 0, MPI_COMM_WORLD);
+                MPI_Bcast(&Lrp->evaluations_history[index_best_setting].param_values,
+                          funcApp1->num_params, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+
+#endif
 				//set parameter values to best combination found so far
 				for(int p = 0; p < funcApp1->num_params; p++)
 					funcApp1->parameter_weights[p] = Lrp->evaluations_history[index_best_setting].param_values[p];
@@ -1589,17 +1619,24 @@ void Fixed_Play_Testing(double input_param1, double input_param2)
 	//setup result storage
 	Tom_Sample_Storage<double>* score[2];
 
-	gmp->Print("Fixed_Play_Testing()\n");
-	gmp->Print("%s repeats %d (input params %3.3lf %3.3lf)\n",(game->game_name).c_str(), repeats, input_param1, input_param2);
-	gmp->Print("Evaluated player %d sim %d\n",eval_player_position+1, evaluated->UCT_param_IterNum);
+#ifdef ENABLE_MPI
+    if (!get_mpi_rank()) {
+        gmp->Print("Fixed_Play_Testing()\n");
+        gmp->Print("%s repeats %d (input params %3.3lf %3.3lf)\n",(game->game_name).c_str(), repeats, input_param1, input_param2);
+        gmp->Print("Evaluated player %d sim %d\n",eval_player_position+1, evaluated->UCT_param_IterNum);
+    }
+#endif
 
+    if((display_output_game == 0)&&(human_opponent_override == 0)){
 
-	if((display_output_game == 0)&&(human_opponent_override == 0)){
-
-		gmp->Print("Opponent C %3.3f, sim %d\n",opponent->UCT_param_C,opponent->UCT_param_IterNum);
-		gmp->Print("\n");
-		gmp->Print("        Score[%%]\n");
-		gmp->Print(" Repeats     Avg  Conf95     Dev Runtime[s]\n");
+#ifdef ENABLE_MPI
+        if (!get_mpi_rank()) {
+            gmp->Print("Opponent C %3.3f, sim %d\n",opponent->UCT_param_C,opponent->UCT_param_IterNum);
+            gmp->Print("\n");
+            gmp->Print("        Score[%%]\n");
+            gmp->Print(" Repeats     Avg  Conf95     Dev Runtime[s]\n");
+        }
+#endif
 
 		score[0] = new Tom_Sample_Storage<double>(repeats);
 		score[1] = new Tom_Sample_Storage<double>(repeats);
@@ -1607,18 +1644,40 @@ void Fixed_Play_Testing(double input_param1, double input_param2)
 		double cpu_time = getCPUTime();
 
 		if(benchmark_same_player == 0){
+#ifdef ENABLE_MPI
+            if (get_mpi_rank()) {
+                struct s_update_params params;
+                MPI_Bcast(&params, 1, mpi_update_params_type, 0, MPI_COMM_WORLD);
+                repeats = params.selected_action;
+            }
+#endif
 			game->Evaluate_Players(1,repeats,-1,players,false,eval_player_position,score,output_interval_repeats,measure_time_per_move);
 		}else if(benchmark_same_player == 1){
+#ifdef ENABLE_MPI
+            if (get_mpi_rank()) {
+                struct s_update_params params;
+                MPI_Bcast(&params, 1, mpi_update_params_type, 0, MPI_COMM_WORLD);
+                repeats = params.selected_action;
+            }
+#endif
 			gmp->Print("! benchmark_same_player = opponent vs opponent !\n");
 			players[eval_player_position] = benchmarkOpponent;
 			game->Evaluate_Players(1,repeats,-1,players,false,eval_player_position,score,output_interval_repeats,measure_time_per_move);
-		}else if(benchmark_same_player == 2){
+		}else if(benchmark_same_player == 2){ 
+#ifdef ENABLE_MPI
+            if (get_mpi_rank()) {
+                struct s_update_params params;
+                MPI_Bcast(&params, 1, mpi_update_params_type, 0, MPI_COMM_WORLD);
+                repeats = params.selected_action;
+            }
+#endif
 			gmp->Print("! benchmark_same_player = evaluated vs evaluated !\n");
 			players[1-eval_player_position] = benchmarkEvaluated;
 			game->Evaluate_Players(1,repeats,-1,players,false,eval_player_position,score,output_interval_repeats,measure_time_per_move);
 		}
 
 		cpu_time = getCPUTime()-cpu_time;
+        total_time = cpu_time;
 
 		gmp->Print("%8d  %6.2f  %6.2f  %6.2f  %9.3f\n",
 			repeats,
@@ -3543,7 +3602,8 @@ int main(int argc, char* argv[])
     set_mpi_vars (mpi_rank, mpi_num_proc);
     init_update_params_type ();
 
-    //fprintf (stderr, "I'm process number %d\n", mpi_rank);
+    if (!mpi_rank)
+        fprintf (stderr, "Number of CPUs:%d\n", mpi_num_proc);
     //printf ("MPIRANK %d + MPIPROC %d\n", get_mpi_rank(), get_mpi_num_proc());
 #endif
 

@@ -1,5 +1,4 @@
 &
-(* Spremeni! *)
 (executable = "aiplay.sh")
 (inputfiles =
 	("aiplay.sh" "")
@@ -25,6 +24,7 @@
 	("main.cpp" "")
 	("main.hpp" "")
 	("Makefile" "")
+	("MPI.cpp" "")
 	("MPI.hpp" "")
 	("Player_AI_Simple.cpp" "")
 	("Player_AI_Simple.hpp" "")
@@ -60,10 +60,6 @@
 
 (arguments= "100")
 
-(* ------------------------------------------------------ *)
-(* ++++++++++++++ vse je v enotah na 1 cpe +++++++++++++++*)
-(* ------------------------------------------------------ *)
-
 (* Koliko procesorskega casa lahko pokurim? *)
 (walltime="240 hour")
 
@@ -74,16 +70,14 @@
 (* (disk="i500") *)
 
 (* To je kolicina zahtevanih procesorjev. Privzeto 64. *)
-(count=2)
+(count=65)
 
 (* To je kolicina pomnilnika v MB na CPU. Privzeto 2000 MB. *)
 (*memory=100*)
 
 (* Okolja *)
 (* runTimeEnvironment = "APPS/FERI/MPI2" *)
-(runTimeEnvironment = "APPS/ARNES/MPI")
-
-(* dodaj RTE, ce hoces > 64 procesorjev, vendar pa infiniband omogoci le ce je nujno ("APPS/FERI/MPI2/RTE") *)
+(runTimeEnvironment = "APPS/ARNES/MPI-1.7")
 
 (* Log *)
 (gmlog=gridlog)
