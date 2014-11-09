@@ -16,6 +16,7 @@ echo "ARG_ZAGON:""$ARGUMENTI_ZAGON"
 
 #2. Zagon programa
 $MPIRUN $MPIARGS $PROGRAM $ARGUMENTI_ZAGON
+#$MPIRUN -np 1 $PROGRAM $ARGUMENTI_ZAGON
 
 #3. Uspesen?
 exitcode=$?

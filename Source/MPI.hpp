@@ -1,15 +1,17 @@
 #define ENABLE_MPI
 #define SEED 0
+#define ENABLE_RANDOM
+
+long seedgen(void);
 
 // enable or disable randomization
 #ifdef ENABLE_RANDOM
-#define SET_SEED() srand((unsigned int)time(NULL))
+#define SET_SEED() do {long seed = seedgen(); srand(seed); printf("%ld SEED\n", seed);} while(0);
 #else
 #define SET_SEED() srand(SEED)
 #endif
 
 #ifdef ENABLE_MPI
-
 #include<mpi.h>
 
 const int BCAST_EXIT = -1;      // call MPI_Finalize()

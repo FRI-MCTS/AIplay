@@ -54,7 +54,7 @@
 	("Tom_Lrp.hpp" "")
 	("Tom_Sample_Storage.hpp" "")
 )
-(jobname=aiplay1)
+(jobname=aiplay_gomoku_N5k_R10_UCT5k_5k_C16)
 (stdout=aiplay.out)
 (stderr=aiplay.err)
 
@@ -70,7 +70,7 @@
 (* (disk="i500") *)
 
 (* To je kolicina zahtevanih procesorjev. Privzeto 64. *)
-(count=65)
+(count=16)
 
 (* To je kolicina pomnilnika v MB na CPU. Privzeto 2000 MB. *)
 (*memory=100*)

@@ -1,5 +1,20 @@
 #include "MPI.hpp"
 #include <stddef.h>
+#include <time.h>
+#include <unistd.h>
+#include <stdlib.h>
+
+// good seed for parallel programs; according to
+// http://stackoverflow.com/questions/8920411/possible-sources-for-random-number-seeds
+long seedgen (void)  {
+    long s, seed, pid;
+
+    pid = getpid();
+    s = time (NULL);
+
+    seed = abs(((s*181)*((pid-83)*359))%104729);
+    return seed;
+}
 
 #ifdef ENABLE_MPI
 static int mpi_rank, mpi_num_proc;

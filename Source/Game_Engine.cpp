@@ -810,6 +810,8 @@ double Game_Engine::Evaluate_Players(int num_repeats, int num_games, int output_
         num_games = s_tmp.selected_action + num_games % get_mpi_num_proc();
     }
 #endif
+
+    printf ("RANK %d, num games %d\n", get_mpi_rank(), num_games);
 	//check if players are correctly linked to game, otherwise exit procedure
 	players = Validate_Players(players);
 	if(players == NULL)
@@ -1050,9 +1052,9 @@ double Game_Engine::Evaluate_Players(int num_repeats, int num_games, int output_
                 score_count_total[i] /= (double) get_mpi_num_proc();
 
             //if (!get_mpi_rank()) {
-                //for (int i = 0; i < number_players; i++)
-                    //printf ("I %d rank %d, LOCAL %lf, TOTAL %lf\n",
-                            //i, get_mpi_rank(), score_count_local[i], score_count_total[i]);
+                for (int i = 0; i < number_players; i++)
+                    printf ("I %d rank %d, LOCAL %lf, TOTAL %lf\n",
+                            i, get_mpi_rank(), score_count_local[i], score_count_total[i]);
             //}
 #endif
             //calculate avgerage and deviation in external score storing structure

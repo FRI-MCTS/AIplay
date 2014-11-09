@@ -83,15 +83,17 @@ void Main_Testing()
 
     int num_repeats = 10;
     double whole_time = 0;
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < num_repeats; i++) {
         if (!get_mpi_rank())
         printf("REPEAT %d -----------------\n", i);
         Fixed_Play_Testing();				//evaluate fixed settings (no LRP)
         whole_time += total_time;
-        printf ("Total time %lf\n", total_time);
+        if (!get_mpi_rank())
+            printf ("Total time %lf\n", total_time);
     }
 
-    printf ("Average time through %d repeats: %lf\n", num_repeats, whole_time/num_repeats);
+    if (!get_mpi_rank())
+        printf ("Average time through %d repeats: %lf\n", num_repeats, whole_time/num_repeats);
     //LRP_improved_v1();				//single LRP run
 	//LRP_test_wrapperMultiPar();		//multiple LRP repeats
 
@@ -1176,7 +1178,7 @@ void Fixed_Play_Testing(double input_param1, double input_param2)
 
 	//--- SET BENCHMARK PARAMETERS HERE ---//
 
-	int repeats = 600;
+	int repeats = 5000;
 		//1000000, 95% confidence that true value deviates less by 0.1%
 		//200000,  95% confidence that true value deviates less by 0.3%
 		//20000,   95% confidence that true value deviates less by 1%
@@ -1199,14 +1201,14 @@ void Fixed_Play_Testing(double input_param1, double input_param2)
 	//--- SET PLAYERS PARAMETERS HERE ---//
 
 	//opponent->UCT_param_IterNum = (int)input_param1;
-	opponent->UCT_param_IterNum = 1000;
+	opponent->UCT_param_IterNum = 5000;
 	opponent->UCT_param_C = 0.2;//0.5/sqrt(2);
 	//opponent->UCT_param_C = -0.08;
 	//opponent->RAVE_param_V = 37;
 
 	//evaluated->UCT_param_IterNum = (int)input_param1;
 	//evaluated->UCT_param_IterNum = (int)input_param2;
-	evaluated->UCT_param_IterNum = 1000;
+	evaluated->UCT_param_IterNum = 5000;
 	evaluated->UCT_param_C = 0.2;//0.5/sqrt(2);
 	//evaluated->AMAF_param_alpha = 0.8;
 	//evaluated->RAVE_param_V = 35;
