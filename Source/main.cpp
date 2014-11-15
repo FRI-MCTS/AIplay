@@ -39,7 +39,8 @@ void LRP_test_wrapperMultiPar();
 
 void LRP_improved_v1(double* score_avg = NULL, double* score_avg_last10 = NULL, double** last_param_val = NULL, bool force_setting_output = false, const int set_final_evaluations = 750, double* avg_num_games = NULL, double* final_eval_score = NULL);
 
-void Fixed_Play_Testing(double input_param1 = 0.0, double input_param2 = 0.0);
+void Fixed_Play_Testing(bool use_global = true,
+                        double input_param1 = 0.0, double input_param2 = 0.0);
 
 void Tom_Paper1_tests();
 
@@ -47,6 +48,12 @@ void Tom_Paper1_tests();
 int mpi_rank, mpi_num_proc;
 double total_time;
 #endif
+
+// arguments
+int gl_args[5] = {0, 1200, 1000, 1000, 10}; // function, num_games, p1_uct, p2_uct
+FILE *f_inter;                          // csv file for intermediate results
+FILE *f_general;                        // file with general data and final result
+bool can_write_csv = true;
 
 
 //---- WRITE OWN CODE IN THIS PROCEDURE ----
@@ -81,19 +88,38 @@ void Main_Testing()
 	//TicTacToe_Implementation_Test1();
 	//Go_Testing();
 
-    int num_repeats = 10;
+    int num_repeats = gl_args[5];
     double whole_time = 0;
+    if (!get_mpi_rank())
+        printf ("NUM REPEATS: %d\n", num_repeats);
     for (int i = 0; i < num_repeats; i++) {
         if (!get_mpi_rank())
-        printf("REPEAT %d -----------------\n", i);
-        Fixed_Play_Testing();				//evaluate fixed settings (no LRP)
+            printf("REPEAT %d -----------------\n", i);
+
+        if (!gl_args[0])
+            Fixed_Play_Testing(); //evaluate fixed settings (no LRP)
+        else
+            LRP_improved_v1();				//single LRP run
         whole_time += total_time;
+
+        if (can_write_csv)
+            fprintf (f_inter, "%lf;\n", total_time);
         if (!get_mpi_rank())
             printf ("Total time %lf\n", total_time);
     }
 
+    if (can_write_csv) {
+        fprintf (f_general, "%d;%d;%d;%d;%d;%lf\n",
+                 gl_args[1], num_repeats, gl_args[2], gl_args[3],
+                 get_mpi_num_proc(), whole_time/num_repeats);
+    }
     if (!get_mpi_rank())
         printf ("Average time through %d repeats: %lf\n", num_repeats, whole_time/num_repeats);
+
+    if (can_write_csv) {
+        fclose (f_general);
+        fclose (f_inter);
+    }
     //LRP_improved_v1();				//single LRP run
 	//LRP_test_wrapperMultiPar();		//multiple LRP repeats
 
@@ -693,6 +719,7 @@ void LRP_improved_v1(double* score_avg, double* score_avg_last10, double** last_
                 game->Evaluate_Players(1, n,-1, players, false, eval_player_position);
             }
             else if (params.command == BCAST_WEIGHTS) {
+                rand();
                 //printf("RANK %d || ac: %d dw: %lf\n",
                         //get_mpi_rank(), params.selected_action, params.dw);
                 funcApp1->Action_Update_Weights(params.selected_action, params.dw);
@@ -1132,7 +1159,7 @@ void LRP_test_wrapperMultiPar()
 		delete(last_param[p]);
 }
 
-void Fixed_Play_Testing(double input_param1, double input_param2)
+void Fixed_Play_Testing(bool use_global, double input_param1, double input_param2)
 {
 
 	//--- SET GAME AND PLAYERS HERE ---//
@@ -1178,7 +1205,7 @@ void Fixed_Play_Testing(double input_param1, double input_param2)
 
 	//--- SET BENCHMARK PARAMETERS HERE ---//
 
-	int repeats = 5000;
+	int repeats = use_global ? gl_args[1] : 20000;
 		//1000000, 95% confidence that true value deviates less by 0.1%
 		//200000,  95% confidence that true value deviates less by 0.3%
 		//20000,   95% confidence that true value deviates less by 1%
@@ -1201,14 +1228,14 @@ void Fixed_Play_Testing(double input_param1, double input_param2)
 	//--- SET PLAYERS PARAMETERS HERE ---//
 
 	//opponent->UCT_param_IterNum = (int)input_param1;
-	opponent->UCT_param_IterNum = 5000;
+	opponent->UCT_param_IterNum = use_global ? gl_args[2] : 1000;
 	opponent->UCT_param_C = 0.2;//0.5/sqrt(2);
 	//opponent->UCT_param_C = -0.08;
 	//opponent->RAVE_param_V = 37;
 
 	//evaluated->UCT_param_IterNum = (int)input_param1;
 	//evaluated->UCT_param_IterNum = (int)input_param2;
-	evaluated->UCT_param_IterNum = 5000;
+	evaluated->UCT_param_IterNum = use_global ? gl_args[3] : 1000;
 	evaluated->UCT_param_C = 0.2;//0.5/sqrt(2);
 	//evaluated->AMAF_param_alpha = 0.8;
 	//evaluated->RAVE_param_V = 35;
@@ -3608,6 +3635,30 @@ int main(int argc, char* argv[])
         fprintf (stderr, "Number of CPUs:%d\n", mpi_num_proc);
     //printf ("MPIRANK %d + MPIPROC %d\n", get_mpi_rank(), get_mpi_num_proc());
 #endif
+
+    // parse arguments
+    if (argc > 1) {
+        if (!strcmp (argv[1], "fix"))
+            gl_args[0] = 0;
+        else if (!strcmp (argv[1], "lrp"))
+            gl_args[0] = 1;
+        else {
+            fprintf (stderr, "Wrong method name (fix, lrp)\n");
+            cleanup_mpi();
+            exit (1);
+        }
+
+        for (int i = 2; i < argc && i < 6; i++)
+            gl_args[i-1] = atoi (argv[i]);
+    }
+
+    f_inter = fopen ("intermediate.csv", "w");
+    f_general = fopen ("general.csv", "w");
+
+    if (f_inter == NULL || f_general == NULL) {
+        fprintf (stderr, "Cannot create csv files.\n");
+        can_write_csv = false;
+    }
 
     //save program start time to global variable
 #if ((_WIN32 || _WIN64) && _MSC_VER)

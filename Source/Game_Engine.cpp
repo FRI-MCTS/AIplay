@@ -811,7 +811,6 @@ double Game_Engine::Evaluate_Players(int num_repeats, int num_games, int output_
     }
 #endif
 
-    printf ("RANK %d, num games %d\n", get_mpi_rank(), num_games);
 	//check if players are correctly linked to game, otherwise exit procedure
 	players = Validate_Players(players);
 	if(players == NULL)
@@ -1040,7 +1039,7 @@ double Game_Engine::Evaluate_Players(int num_repeats, int num_games, int output_
 #endif
 
 #ifdef ENABLE_MPI
-            for (int i = 0; i < number_players; i++)
+            //for (int i = 0; i < number_players; i++)
             //printf("RANK %d[%d], score %lf\n", get_mpi_rank(), i, score_count_local[i]);
 
             MPI_Reduce (score_count_local, score_count_total, number_players,

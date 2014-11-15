@@ -1,5 +1,5 @@
 &
-(executable = "aiplay.sh")
+(executable = "aiplay_temp.sh")
 (inputfiles =
 	("aiplay.sh" "")
 	("aiplay.xrsl" "")
@@ -54,11 +54,15 @@
 	("Tom_Lrp.hpp" "")
 	("Tom_Sample_Storage.hpp" "")
 )
-(jobname=aiplay_gomoku_N5k_R10_UCT5k_5k_C16)
+(jobname=aiplay_gomoku_N%(NUM_GAMES)_R%(REPEATS)_UCT%(PLAYER1_UCT)_%(PLAYER2_UCT)_C%(CORES))
 (stdout=aiplay.out)
 (stderr=aiplay.err)
+(outputFiles=
+	("intermediate.csv" "")
+	("general.csv" "")
+)
 
-(arguments= "100")
+(arguments= "%(METHOD) %(NUM_GAMES) %(PLAYER1_UCT) %(PLAYER2_UCT) %(REPEATS)")
 
 (* Koliko procesorskega casa lahko pokurim? *)
 (walltime="240 hour")
@@ -70,7 +74,7 @@
 (* (disk="i500") *)
 
 (* To je kolicina zahtevanih procesorjev. Privzeto 64. *)
-(count=16)
+(count=%(CORES))
 
 (* To je kolicina pomnilnika v MB na CPU. Privzeto 2000 MB. *)
 (*memory=100*)

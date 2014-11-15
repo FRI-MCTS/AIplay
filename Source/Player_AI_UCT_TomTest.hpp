@@ -36,7 +36,7 @@ ISSUES: PRESERVING TREE CURRENTLY NOT IMPLEMENTED COMPLETLY
 
 #define TOMPLAYER_AI_UCT_TOMTEST_USE_MOVING_AVERAGE			0	//replace MC with moving average value
 
-#define TOMPLAYER_AI_UCT_TOMTEST_AMAF_EQUATION_TYPE			3	//enable the use AMAF heuristic (if > 0)
+#define TOMPLAYER_AI_UCT_TOMTEST_AMAF_EQUATION_TYPE			0	//enable the use AMAF heuristic (if > 0)
 	//0 - disabled: plain UCB (MC + UCB) (default)
 	//1 - alpha-AMAF original		a*AMAF + (1-a)*(MC + C*UCB) - in our paper equation amaf1
 	//2 - alpha-AMAF variant 1		a*AMAF + (1-a)*MC + C*UCB
@@ -50,7 +50,7 @@ ISSUES: PRESERVING TREE CURRENTLY NOT IMPLEMENTED COMPLETLY
 	//3 - RAVE original variant 2:	n' / (n + n' + 4*n*n'*b*b)	... b is the RAVE bias (double in range 0.0-1.0 and above)
 #define TOMPLAYER_AI_UCT_TOMTEST_AMAF_IGNORE_UNTIL_EXPANDED	1	//apply AMAF only to children of fully expanded parents (to prevent biasing the nodes that were randomly expanded first)
 
-#define TOMPLAYER_AI_UCT_TOMTEST_QVALUE_EQUATION_TYPE		2	//use Q-values instead of MC (enables calculation of Q-values)
+#define TOMPLAYER_AI_UCT_TOMTEST_QVALUE_EQUATION_TYPE		0	//use Q-values instead of MC (enables calculation of Q-values)
 	//0 - disabled (default)
 	//1 - Q-values instead of MC
 	//2 - weighted Q-values (Q + MC)
@@ -76,7 +76,7 @@ ISSUES: PRESERVING TREE CURRENTLY NOT IMPLEMENTED COMPLETLY
 	//2 - exponential factor: lambda_playout (default)
 #define TOMPLAYER_AI_UCT_TOMTEST_QVALUE_TRACE_GAMMA_TV		1	//if 1 use also gamma for dimnishing eligibility traces for tree plys (default 1)
 
-#define TOMPLAYER_AI_UCT_TOMTEST_PARAM_FUNC_APP_TYPE		1	//LRP parameter search (MUST set on 0 when evaluating fixed setting)
+#define TOMPLAYER_AI_UCT_TOMTEST_PARAM_FUNC_APP_TYPE		0	//LRP parameter search (MUST set on 0 when evaluating fixed setting)
 	//0 - disabled, constant parameter values
 	//1 - direct search
 	//2 - single neuron (sigmoid function) search
